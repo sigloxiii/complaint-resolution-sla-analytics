@@ -60,6 +60,34 @@ Five CSV files, all modified on 24/10/2026. At this point they are still in `dat
 
 Power Query "Kept Errors" view. `costo_bien_servicio`, `monto_reclamado` and `monto_recuperado` fail with "We couldn't convert to Number"; the offending value is a dash (`-`). `medio_ingreso` also contains the placeholder `sin dato`. The profile in this view uses only the top 1,000 rows, so its percentages are not reliable.
 
+## Choosing the base cut: evidence and criteria
+
+The five cuts were published by hand, with no documented methodology: the names follow different patterns (`quejas_telecom_2022_jul2026`, `..._ene_2026`, `..._junio_2026`), the row counts do not grow with time and the content of the close date is not consistent. Since the publisher gives no rule to choose a cut, the project defines its own criteria (decision D4 in `docs/decisions.md`):
+
+1. **Integrity:** unique `expediente` and no type errors in the dates.
+2. **Coverage:** widest date range and highest volume.
+3. **Plausibility:** close dates vary and are not a single cut-off date.
+4. **Consistency with the other cuts:** overlapping cases agree (overlap audit, pending).
+5. **Traceability:** name, size, date and hash of the file are recorded.
+
+Evidence: the end of each file as seen in Excel (the last rows show the latest records of each cut).
+
+| Cut | Rows | What the end of the file shows | Verdict |
+|---|---|---|---|
+| `..._2022_2025.csv` | ≈32,961 | Rows sorted by filing date. The last filing is 25/11/2025 and the last close date seen is 28/11/2025, so coverage ends in November 2025 | Audit only |
+| `..._2022_ene_2026.csv` | ≈32,652 | A last block sorted by office, with filings from 2025 and close dates in January 2026. The file is larger in bytes per row than the others | Audit only |
+| `..._2022_may_2026.csv` | ≈4,081 | Filings from 12/05/2026 to 27/05/2026 and close dates up to 29/05/2026. Only the end was inspected; it looks like a partial slice | Audit only |
+| `..._2022_junio_2026.csv` | 36,034 | Same last records as `may_2026`. Power Query: unique `expediente`, no date errors, 0.18% of close dates empty, close dates up to 29/05/2026 | **Base (provisional)** |
+| `quejas_telecom_2022_jul2026.csv` | ≈31,926 | Every visible close date is 31/07/2026, even for cases filed in 2025 (it may be a cut-off date, not a real close date) | Audit only, until it is understood |
+
+![Tail of 2022_2025](../img/mx_profeco_tail_2022_2025.png)
+![Tail of ene_2026](../img/mx_profeco_tail_ene_2026.png)
+![Tail of may_2026](../img/mx_profeco_tail_may_2026.png)
+![Tail of junio_2026](../img/mx_profeco_tail_junio_2026.png)
+![Tail of jul2026](../img/mx_profeco_tail_jul2026.png)
+
+Only the end of each file was inspected, and the checks for criteria 1 and 4 were done only for `junio_2026`. The verdicts are therefore provisional and will be reviewed with the overlap audit.
+
 ## Observations (hypotheses to verify)
 
 1. Row counts do not follow the order of the cuts: `ene_2026` and `jul2026` have fewer rows than `2022_2025`.
@@ -91,6 +119,7 @@ Power Query "Kept Errors" view. `costo_bien_servicio`, `monto_reclamado` and `mo
 - [ ] Left-hand columns of the Power Query errors view (cancelled cases with provider "-").
 - [ ] Results of `step_2.sql` in SSMS (blocks 2.1, 2.4 to 2.6, 2.8 to 2.11, 2.13 and 2.14).
 - [ ] Files moved to `data/raw/`.
+- [ ] Save the five Excel captures of the file ends as `mx_profeco_tail_2022_2025.png`, `mx_profeco_tail_ene_2026.png`, `mx_profeco_tail_may_2026.png`, `mx_profeco_tail_junio_2026.png` and `mx_profeco_tail_jul2026.png` in `docs/img/`.
 - [ ] BIT portal: download page and the list of subscriber tables.
 
 ## Results of the feasibility gate

@@ -48,16 +48,44 @@ This is my second portfolio project, following the Google Data Analytics certifi
 
 ## Approach
 
-The pipeline is layered, and only the first two layers depend on the data source.
+The pipeline is layered, and only the first two layers depend on the data source. It follows a reduced form of the **medallion architecture** (bronze, silver, gold) and an **ELT** approach: the raw data are loaded first and transformed inside the database. The reasons are in decisions D2, D5 and D6 of [`docs/decisions.md`](docs/decisions.md).
+
+### Pipeline map: from the raw file to the dashboard
 
 ```
-raw CSV  →  stg (text, as loaded)  →  clean (typed, normalized)  →  mart (star schema)  →  Power BI (Import)
+[ EXTERNAL SOURCE ]  (CSV published by PROFECO)
+        │
+        ▼
+[ STAGE 1: INGESTION / STAGING ]  schema stg  (bronze)
+ ├── Concept: faithful, literal copy of the source.
+ └── Rule: everything enters as text (NVARCHAR), with no filters or transformations.
+        │
+        ▼
+[ STAGE 2: CLEANING AND NORMALIZATION ]  schema clean  (silver)
+ ├── Concept: technical cleaning and structuring.
+ └── Rules: correct data types (dates, numbers), standardized text,
+            placeholders turned into NULL, and quality flags instead of deleted rows.
+        │
+        ▼
+[ STAGE 3: DIMENSIONAL MODELING ]  schema mart  (gold)
+ ├── Concept: business-oriented architecture for analysis.
+ └── Rules: star schema, with a fact table for the SLA metrics and dimension tables
+            for time, region, provider and complaint type.
+        │
+        ▼
+[ STAGE 4: PRESENTATION AND ANALYTICS ]  Power BI
+ ├── Concept: visual exploitation and governance of the indicators.
+ └── Rules: connect to the mart (Import mode), define the relationships,
+            build the business measures (DAX) and design the visual story.
 ```
+
+The pipeline stages above describe how the data flow. The project phases below describe the order of the work.
+
 
 | Phase | Description | Status |
 |---|---|---|
 | 0 | Repository scaffold and feasibility gate on the Mexican dataset | In progress |
-| 1 | Create database and schemas; load raw data into `stg` | Pending |
+| 1 | Create database and schemas; load raw data into `stg` | In progress (`step_0` done) |
 | 2 | Clean and normalize: types, durations, provider mapping | Pending |
 | 3 | Load denominators (subscribers) and build dimensions | Pending |
 | 4 | Build the `mart` star schema; SQL validation queries | Pending |
@@ -70,7 +98,7 @@ raw CSV  →  stg (text, as loaded)  →  clean (typed, normalized)  →  mart (
 
 ## Initial dataset exploration: México
 
-Desk research on the candidate sources is complete. Row-level profiling is part of the feasibility gate and is **pending**.
+Desk research on the candidate sources is complete, and the five PROFECO files were downloaded and inspected in Power Query. Profiling in SQL (`step_2.sql`) is part of the feasibility gate and is **pending**. The evidence and the details of each file are in [`docs/sources/MX_profeco.md`](docs/sources/MX_profeco.md).
 
 ### Candidate sources
 
@@ -82,27 +110,29 @@ Desk research on the candidate sources is complete. Row-level profiling is part 
 | Fixed-service quality guidelines (IFT, 2020) | Regulatory thresholds | Context for benchmarks |
 | Ookla Open Data / M-Lab (optional) | Tiles / test records | Optional technical layer |
 
-### PROFECO field map (from the published data dictionary)
+### PROFECO columns (23, as found in the file header)
 
-| Field | Meaning |
+| Group | Columns |
 |---|---|
-| `ID_EXP` | Case identifier in the dataset |
-| `FECHA_INGRESO`, `FECHA_FIN` | Filing date and date the procedure ended (basis for days to close) |
-| `ESTADO_PROCESAL` | Outcome or status (conciliated, not conciliated, withdrawn, in progress, etc.) |
-| `PROVEEDOR` | Provider legal name |
-| `ESTADO_UA` | State of the PROFECO office that received the complaint |
-| `TIPO_RECLAMACION`, `MOTIVO_RECLAMACION` | Complaint type and sub-reason |
-| `RECLAMADO`, `RECUPERADO` | Amount claimed and amount recovered |
-| `MEDIO_INGRESO` | Filing channel |
+| Case | `expediente` |
+| Dates | `fecha_ingreso`, `fecha_cierre` |
+| Process | `tipo_conciliacion`, `estado_procesal`, `procedimiento`, `medio_ingreso` |
+| Provider | `proveedor` (legal name), `nombre_comercial` (brand), `giro`, `sector` |
+| Office and state | `odeco`, `estado` |
+| Complaint | `tipo_reclamacion`, `motivo_reclamacion`, `problema_especial` |
+| Amounts | `costo_bien_servicio`, `monto_reclamado`, `monto_recuperado` |
+| Purchase | `clase`, `tipo_producto`, `modalidad_compra`, `modalidad_pago` |
 
-The published file contains additional columns not listed above. The staging schema will follow the real CSV header.
+The names differ from the published data dictionary (which uses upper case, for example `ID_EXP`). The meaning of `odeco`, `giro` and `clase` is still to be confirmed.
 
 ### Known caveats (identified before profiling)
 
 - **Provider names vary** between records (for example, with and without the corporate suffix), so a normalization mapping table is required.
-- **Date format:** the data dictionary documents `dd-mm-yyyy`, but sample rows show `yyyy/mm/dd`. All dates are loaded as text and converted with `TRY_CONVERT`, and conversion failures are audited.
+- **Date format:** the data dictionary documents `dd-mm-yyyy`, but Power Query read the dates with the en-US culture without errors, which points to year-first text (for example `2022/01/03`). All dates are loaded as text, the format is checked in `step_2.sql`, and the conversion is done in the clean layer.
 - **Retroactive updates:** the publisher warns that historical data may change. A frozen copy and the download date will be recorded.
-- **Two published versions** exist (2022–2025 and 2022–2026). Which one to use, and how they overlap, will be confirmed during the gate.
+- **Five cuts are published** and they are not simple, growing versions of one another. Which one to use, and how they overlap, will be confirmed during the gate (decision D4 in `docs/decisions.md`).
+- **No service-type column:** fixed vs mobile has to be inferred from the provider.
+- **Placeholders** such as `-` (amounts, provider) and `sin dato` (`medio_ingreso`) are used instead of empty values and become `NULL` in the clean layer.
 - **Metric meaning:** days to close measures the duration of the PROFECO conciliation procedure, not the provider's repair time. Only complaints that reach PROFECO are recorded (self-selection bias).
 
 ### Feasibility gate
@@ -113,7 +143,7 @@ The Mexican dataset is used only if all criteria are met.
 |---|---|---|
 | 1 | At least 2,000 complaints against fixed-network operators (provider-level proxy; the file has no service-type column) | Pending |
 | 2 | Missing `fecha_cierre` below 30% of rows | Pending |
-| 3 | Main providers (Telmex, Megacable, Izzi, Totalplay) with at least 100 cases per year | Pending |
+| 3 | Main providers (Telmex, Izzi, Megacable, Total Play) with at least 100 cases per year | Pending |
 | 4 | Subscribers by operator and state downloadable from BIT | Pending |
 
 Evidence from the gate will be stored in `docs/` regardless of the outcome.
@@ -186,6 +216,17 @@ To be completed.
 ## Limitations
 
 To be completed. The caveats listed above will be expanded with the results of profiling.
+
+---
+
+## References
+
+- Microsoft Learn: [Understand medallion lakehouse architecture for Microsoft Fabric with OneLake](https://learn.microsoft.com/en-us/fabric/onelake/onelake-medallion-lakehouse-architecture).
+- Microsoft Learn (training module): [Organize a Fabric lakehouse using medallion architecture design](https://learn.microsoft.com/en-us/training/modules/describe-medallion-architecture/).
+- Databricks blog: [What is Medallion Architecture?](https://www.databricks.com/blog/what-is-medallion-architecture).
+- Databricks documentation: [What is the medallion lakehouse architecture?](https://docs.databricks.com/aws/en/lakehouse/medallion.html).
+
+The medallion architecture is used here as a design pattern, in a reduced form (one SQL Server database with three schemas, no data lake). The project is not tied to those platforms.
 
 ---
 
