@@ -6,7 +6,7 @@
 -- File      : quejas_telecomunicaciones_2022_junio_2026.csv
 --             (23 columns, UTF-8 encoding, 36,034 rows expected)
 -- Needs     : step_0.sql already executed, and the CSV saved in
---             D:\Capstone SLA\data\raw\profeco_quejas\
+--             D:\Capstone SLA\data\raw\
 --             (that folder is ignored by Git, so the data is not uploaded).
 -- How to run: open in SSMS and press F5.
 -- WARNING   : running it again deletes the table and loads it again.
@@ -55,7 +55,7 @@ GO
 -- IMPORTANT: the file is read by the SQL Server service, not by you, so the
 -- path must be reachable from the computer where SQL Server runs.
 BULK INSERT stg.profeco_raw
-FROM 'D:\Capstone SLA\data\raw\profeco_quejas\quejas_telecomunicaciones_2022_junio_2026.csv'
+FROM 'D:\Capstone SLA\data\raw\quejas_telecomunicaciones_2022_junio_2026.csv'
 WITH (
     FORMAT     = 'CSV',    -- the file is a standard CSV (commas between fields)
     FIELDQUOTE = '"',      -- text between double quotes may contain commas

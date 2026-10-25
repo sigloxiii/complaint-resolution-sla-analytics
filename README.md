@@ -10,7 +10,7 @@
 
 ## Author
 
-**Eng. Rafael Cansigno Peláez** ([@sigloxiii](https://github.com/sigloxiii)): telecommunications engineer transitioning into data analytics.
+**Rafael Cansigno Peláez** ([@sigloxiii](https://github.com/sigloxiii)): telecommunications engineer transitioning into data analytics.
 
 This is my second portfolio project, following the Google Data Analytics certificate capstone: [ftth-qos-qoe-risk-framework](https://github.com/sigloxiii/ftth-qos-qoe-risk-framework). All design decisions, scripts and findings in this repository are documented under my authorship.
 
@@ -111,8 +111,8 @@ The Mexican dataset is used only if all criteria are met.
 
 | # | Criterion | Result |
 |---|---|---|
-| 1 | At least 2,000 fixed-internet complaint rows | Pending |
-| 2 | Missing `FECHA_FIN` below 30% among finished cases | Pending |
+| 1 | At least 2,000 complaints against fixed-network operators (provider-level proxy; the file has no service-type column) | Pending |
+| 2 | Missing `fecha_cierre` below 30% of rows | Pending |
 | 3 | Main providers (Telmex, Megacable, Izzi, Totalplay) with at least 100 cases per year | Pending |
 | 4 | Subscribers by operator and state downloadable from BIT | Pending |
 
@@ -126,7 +126,7 @@ If the Mexican data fails the gate, the project pivots to a US open dataset **wi
 
 | Stays the same | Changes |
 |---|---|
-| Canonical `mart` schema and star model | Source adapters in `sql/sources/us_nyc311/` |
+| Canonical `mart` schema and star model | Source adapters in `sql/us_nyc311/` |
 | Scripts in `sql/common/` | Responsible party = agency |
 | DAX measure structure and report layout | Region = borough |
 | Business questions BQ1, BQ3 (adapted), BQ4 | Normalization by population instead of subscribers |
@@ -147,14 +147,21 @@ The reasons for any pivot will be documented in `docs/`.
 ## Repository structure
 
 ```
-assets/      # banner and other static images
-data/        # raw/ and interim/ are not versioned; reference/ holds small seed files
+assets/            # banner and other static images
+data/
+  raw/             # source files as downloaded (not versioned)
+  interim/         # intermediate files (not versioned)
+  reference/       # small seed files, for example the provider mapping
 sql/
-  common/    # source-agnostic: database, schemas, mart, views
-  sources/   # per-source adapters (stg → clean)
-powerbi/     # .pbix and PDF report
-docs/        # source notes, decisions, executive brief
+  common/          # source-agnostic: database, schemas, mart, views
+  mx_profeco/      # one folder per source: load and clean (stg → clean)
+powerbi/           # .pbix and PDF report
+docs/
+  sources/         # one note per data source
+  img/             # evidence images, named <topic>_<name>.png
 ```
+
+The structure is limited to two folder levels.
 
 ---
 

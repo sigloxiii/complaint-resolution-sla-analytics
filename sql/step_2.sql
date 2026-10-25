@@ -79,7 +79,7 @@ WHERE fecha_cierre IS NOT NULL
 -- ---------------------------------------------------------------------
 -- 2.5 DATE RANGES
 -- Expected (from Power Query):
---   filing: 2022-01-03 to 2026-05-29    close: 2022-01-06 to 2026-05-29
+--   filing: 2022-01-03 to 2026-05-27    close: 2022-01-06 to 2026-05-29
 -- ---------------------------------------------------------------------
 SELECT MIN(fecha_ingreso) AS first_ingreso,
        MAX(fecha_ingreso) AS last_ingreso
@@ -215,6 +215,8 @@ ORDER BY n_cases DESC;
 -- So "TRY_CONVERT(...) IS NULL" on a non-empty value means "this value
 -- is not a valid number". Each query lists those values.
 -- An empty result means there is no problem in that column.
+-- Power Query already showed that the value "-" (a dash) is what fails to
+-- convert. Here you will see how many rows have it in each column.
 -- ---------------------------------------------------------------------
 SELECT TOP 20 monto_reclamado, COUNT(*) AS n
 FROM stg.profeco_raw
