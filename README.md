@@ -1,4 +1,4 @@
-![complaint-resolution-sla-analytics banner](assets/main.banner.png)
+![complaint-resolution-sla-analytics banner](assets/main_banner.png)
 
 # complaint-resolution-sla-analytics
 
