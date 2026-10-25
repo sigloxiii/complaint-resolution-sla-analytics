@@ -1,6 +1,6 @@
 # Source record: PROFECO telecommunications complaints (México)
 
-Exploration log of the source. The first part was written **before** running the profiling scripts, so that the starting point and the expectations are on record. Evidence images are stored in `docs/img/sources/mx_profeco/`. The results of `step_2.sql` are added after the gate (see the end of this file).
+Exploration log of the source. The first part was written **before** running the profiling scripts, so that the starting point and the expectations are on record. Evidence images are stored in `docs/img/`. The results of `step_2.sql` are added after the gate (see the end of this file).
 
 ## Publisher and access
 
@@ -32,31 +32,31 @@ SHA-256 of the base file (optional, proves the file was not modified): TBD.
 
 ### E1. Dataset page on datos.gob.mx
 
-![E1: search result on datos.gob.mx](../img/sources/mx_profeco/fuentes_01.png)
+![E1: search result on datos.gob.mx](../img/mx_profeco_fuentes_01.png)
 
 The portal lists "Quejas en materia de telecomunicaciones" (publisher PROFECO) with **5 databases** and a last update on **22 September 2026**.
 
 ### E2. Files downloaded to the project folder
 
-![E2: downloaded files](../img/sources/mx_profeco/profeco_data_sources.png)
+![E2: downloaded files](../img/mx_profeco_data_sources.png)
 
 Five CSV files, all modified on 24/10/2026. At this point they are still in `data\`, not yet in `data/raw/profeco_quejas/`.
 
 ### E3. Profile of `fecha_ingreso` (junio_2026, Power Query)
 
-![E3: fecha_ingreso profile](../img/sources/mx_profeco/inspeccion_fuentes_01.png)
+![E3: fecha_ingreso profile](../img/mx_profeco_inspeccion_fuentes_01.png)
 
 36,034 rows, 0 errors, 0 empty values, 1,155 distinct dates. Minimum 03/01/2022 and maximum 27/05/2026 (the year is cut off in the capture and is to be confirmed in `step_2.sql`, block 2.5).
 
 ### E4. Profile of `fecha_cierre` (junio_2026, Power Query)
 
-![E4: fecha_cierre profile](../img/sources/mx_profeco/inspeccion_fuentes_02.png)
+![E4: fecha_cierre profile](../img/mx_profeco_inspeccion_fuentes_02.png)
 
 36,034 rows, 0 errors, **66 empty** (0.18%), 1,142 distinct dates. Minimum 06/01/2022 and maximum 29/05/2026. The most frequent close date is 10/03/2026, well above the typical day (possible batch closing, see block 2.12).
 
 ### E5. Dirty values in the amount columns
 
-![E5: type errors in Power Query](../img/sources/mx_profeco/datos_sucios.png)
+![E5: type errors in Power Query](../img/mx_profeco_datos_sucios.png)
 
 Power Query "Kept Errors" view. `costo_bien_servicio`, `monto_reclamado` and `monto_recuperado` fail with "We couldn't convert to Number"; the offending value is a dash (`-`). `medio_ingreso` also contains the placeholder `sin dato`. The profile in this view uses only the top 1,000 rows, so its percentages are not reliable.
 
@@ -81,7 +81,7 @@ Power Query "Kept Errors" view. `costo_bien_servicio`, `monto_reclamado` and `mo
 ## Handling rules
 
 - Raw files are never edited. They are stored in `data/raw/profeco_quejas/`, which is not versioned.
-- The data are loaded as text into `stg.profeco_raw` (`sql/sources/mx_profeco/step_1.sql`) and cleaned only in SQL.
+- The data are loaded as text into `stg.profeco_raw` (`sql/sources/step_1.sql`) and cleaned only in SQL.
 - The publisher may update the data retroactively. The download date and file identity are recorded here.
 
 ## Pending evidence
