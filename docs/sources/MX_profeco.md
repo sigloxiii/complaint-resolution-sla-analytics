@@ -96,7 +96,7 @@ Only the end of each file was inspected, and the checks for criteria 1 and 4 wer
 4. The portal reports a last update on 2026-09-22 (E1). The newest cut may be `jul2026`, which has fewer rows and a different name pattern. The relation between cuts is not understood yet.
 5. `ene_2026` is the largest file by size (14,239 KB) but not by rows: about 447 bytes per row against about 400 in the other files. Its content differs (extra spaces, longer text or other quoting). To be inspected.
 6. Text values differ in capitalization between cuts (for example "Cobro indebido" vs "Cobro Indebido", "DGPCT" vs "Dgpct").
-7. There is **no column for the type of service** (internet, mobile, TV). `giro` describes the main business of the provider, not the service the complaint is about, so a provider that sells several services (for example Telmex) cannot be split by service. Fixed vs mobile has to be inferred from the provider, and the analysis is at provider level. Confirmed by visual inspection; to be verified in `step_2.sql` block 2.8 (checks A and B).
+7. There is **no complete column for the type of service** (internet, mobile, TV). `giro` is a provider classification and `problema_especial` has a service name in only 27% of the rows. Decision D7: analysis at provider level. See the section *Type of service* below.
 8. Rows with `estado_procesal` = Cancelada have provider "-", brand "Otros" and no close date.
 9. Placeholders are used instead of empty values: `-` in amounts, provider and other columns, and `sin dato` in `medio_ingreso`. All of them become `NULL` in the clean layer.
 10. In `junio_2026`, the last filing date is 2026-05-27 and the last close date is 2026-05-29 (E3, E4).
@@ -121,6 +121,40 @@ Only the end of each file was inspected, and the checks for criteria 1 and 4 wer
 - [ ] Files moved to `data/raw/`.
 - [ ] Save the five Excel captures of the file ends as `mx_profeco_tail_2022_2025.png`, `mx_profeco_tail_ene_2026.png`, `mx_profeco_tail_may_2026.png`, `mx_profeco_tail_junio_2026.png` and `mx_profeco_tail_jul2026.png` in `docs/img/`.
 - [ ] BIT portal: download page and the list of subscriber tables.
+
+## Type of service (`step_2.sql`, block 2.8)
+
+Visual inspection suggested that no column tells which service a complaint is about. Block 2.8 tested it with the checks below (run on 2026-10-26).
+
+| Check | Question | Result | Evidence |
+|---|---|---|---|
+| A | Brands with more than one `giro` | 58 brands. Telcel 5, Megacable 7, Izzi 5, Telmex 6 | ![Check A, part 1](../img/mx_profeco_step_2_8_check_a_01.png) ![Check A, part 2](../img/mx_profeco_step_2_8_check_a_02.png) |
+| B | Do reason columns mention a service? | `motivo_reclamacion` 0, `tipo_reclamacion` 0, `problema_especial` 5,443 | ![Check B](../img/mx_profeco_step_2_8_check_b.png) |
+| C | Values of `giro` | Mobile telephony 18,466; pay TV 10,211; local telephony 2,354; cable TV 2,051; internet giros 944 | ![Check C](../img/mx_profeco_step_2_8_check_c_giro.png) |
+| D | `giro` of the main brands | Izzi: 3,530 of 3,693 as pay TV and 80 as internet | ![Check D](../img/mx_profeco_step_2_8_check_d.png) |
+| E | `giro` inside one legal name | It changes (Radiomóvil Dipsa 5 values, Total Play 6) | ![Check E](../img/mx_profeco_step_2_8_check_e.png) |
+| F | Values of `problema_especial` | 26,116 "No Problema Especial" (72.5%); 9,806 with a service name (27.2%) | ![Check F](../img/mx_profeco_step_2_8_check_f.png) |
+| G | `giro` of Total Play by year | Both labels, "Televisión por Cable" and "Empresa de Tv de Paga", appear every year | ![Check G](../img/mx_profeco_step_2_8_check_g.png) |
+| H | Brand vs `problema_especial` | Coherent with the business of each brand (see below) | ![Check H](../img/mx_profeco_step_2_8_check_h.png) |
+| I | Coverage of `problema_especial` by year | 2022 20%, 2023 21%, 2024 28%, 2025 38%, 2026 43% | ![Check I](../img/mx_profeco_step_2_8_check_i.png) |
+
+Reading of check H (values with a service name, as a share of each brand's complaints):
+
+| Brand | Complaints | With service name | Main values |
+|---|---|---|---|
+| Telcel | 10,721 | about 42% | Uso de Internet/datos 2,691; Telefonía Móvil 1,817 |
+| Movistar | 4,155 | about 36% | Telefonía Móvil 1,386; Uso de Internet/datos 118 |
+| Megacable | 3,967 | about 28% | Internet 795; Television 163; Telefonia 141 |
+| Total Play + Totalplay | 3,347 | about 29% | Internet 805; Television 83; Telefonia 64 |
+| Izzi | 3,693 | about 11% | Internet 203; Television 106; Telefonia 104 |
+| Telmex | 2,261 | about 1% | Telefonia 13; Internet 5 |
+
+Conclusions (decision D7):
+
+- `giro` is not the service of the complaint.
+- `problema_especial` is coherent with the brand but incomplete and unstable over time, so it is used only as a labeled partial hint.
+- Other values of `problema_especial` are free text (for example `Cablemas ¿ Cablevision Monterr`, 26 rows), and `-` or `sin dato` (47 rows). The character `¿` may come from the source file; to be checked in the original CSV.
+- The columns `clase` and `tipo_producto` were not inspected yet.
 
 ## Results of the feasibility gate
 

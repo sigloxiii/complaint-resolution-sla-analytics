@@ -10,6 +10,7 @@ Each entry records the context, the options considered, the decision and the rea
 | D4 | Choice of the base CSV cut | Provisional |
 | D5 | Layered architecture (medallion-lite) and ELT | Accepted |
 | D6 | Load the CSV with a script instead of the SSMS wizard | Accepted |
+| D7 | Analysis level: provider, with a partial service hint | Provisional |
 
 ---
 
@@ -124,3 +125,29 @@ Each entry records the context, the options considered, the decision and the rea
   3. **Controlled types:** every column is created as text, which is the bronze rule. The wizard proposes types guessed from a sample, which can convert or reject values such as dates or dashes in amount columns.
   4. **Reusable:** loading another cut only needs a different file path.
 - **Costs:** the file must be readable by the SQL Server service account (permission errors are possible) and the column order must match the CSV exactly. The wizard remains acceptable for a quick, throwaway look at a file.
+
+---
+
+## D7. Analysis level: provider, with a partial service hint
+
+- **Status:** Provisional. Pending the review of `clase` and `tipo_producto`, which were not inspected yet.
+- **Date:** 2026-10-26
+- **Context:** the file has no column with the service the complaint is about (internet, mobile or TV). Visual inspection suggested it, and block 2.8 of `step_2.sql` tested it (evidence in `docs/sources/MX_profeco.md`). The results were:
+  - `giro` is not constant per brand or per legal name, and it is a catalog of business lines: Izzi has 3,530 of 3,693 complaints as "Empresa de Tv de Paga" and only 80 as internet. It does not describe the complaint.
+  - `motivo_reclamacion` and `tipo_reclamacion` never mention a service (0 matches).
+  - `problema_especial` holds a service name in 9,806 rows (27.2%). It is coherent with the brand (Telcel and Movistar are mobile; Izzi, Megacable and Total Play are internet, TV and fixed telephony). But its coverage is uneven: 1.0% for Telmex, 11% for Izzi, 28% for Megacable and 42% for Telcel; and it rises over time, from 20% in 2022 to 43% in 2026.
+- **Options:**
+  - A. Use `giro` as the service type. Rejected: it is a provider classification.
+  - B. Use `problema_especial` as the service type for all KPIs. Rejected: 73% of rows have no value, the coverage depends on the brand and the year, and complaints with a value are probably not a random sample.
+  - C. Analyze at provider level and use `problema_especial` only as a labeled partial hint.
+- **Decision:** C.
+  1. The main analysis is by provider (normalized brand). Fixed vs mobile comes from a brand mapping table (`data/reference/`), not from each complaint.
+  2. The clean layer creates `service_hint` from `problema_especial` (mobile telephony, mobile data, internet, television, fixed telephony, not specified). The values "No Problema Especial", `-`, `sin dato` and free text become "not specified".
+  3. `service_hint` is shown only in a data-quality view, always with its coverage. It is not used in the headline KPIs or in trends over time.
+  4. `giro` is kept as a descriptive attribute.
+- **Reasons:** a KPI by service that covers 27% of the rows, and a different share each year, would show changes in how the field is filled and not changes in service quality. A provider-level analysis uses 100% of the rows and can be defended.
+- **Consequences:**
+  - The business questions are answered by provider, state, reason and time. They are not answered by service.
+  - Telmex complaints (2,261) mix several services and cannot be split.
+  - A split by service would need another source, for example BIT subscribers by service, to normalize rates only.
+- **Assumption to verify:** "Uso de Internet/datos" is probably mobile data, because it appears mostly under Telcel, Movistar and AT&T, while "Internet" appears under fixed operators. This is an inference from the brands, not from the data dictionary.
