@@ -169,6 +169,24 @@ GROUP BY proveedor
 HAVING COUNT(DISTINCT giro) > 1
 ORDER BY n_complaints DESC;
 
+-- Check F: Check B found "internet", "celular" or "televis" inside
+-- problema_especial in thousands of rows. What does this column contain?
+SELECT TOP 30 problema_especial, COUNT(*) AS n
+FROM stg.profeco_raw
+GROUP BY problema_especial
+ORDER BY n DESC;
+
+-- Check G: does the giro label of one brand change over the years?
+-- (the same company appears with "Televisión por Cable" and with
+-- "Empresa de Tv de Paga"; this shows if it is a catalog change in time).
+SELECT LEFT(fecha_ingreso, 4) AS filing_year,
+       giro,
+       COUNT(*)               AS n_complaints
+FROM stg.profeco_raw
+WHERE nombre_comercial IN ('Totalplay', 'Total Play')
+GROUP BY LEFT(fecha_ingreso, 4), giro
+ORDER BY filing_year, n_complaints DESC;
+
 -- Check C: the values of the columns that might describe the service.
 SELECT giro, COUNT(*) AS n
 FROM stg.profeco_raw
