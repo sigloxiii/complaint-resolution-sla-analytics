@@ -6,7 +6,7 @@ Record of each script execution on the local instance (SQL Server 2025 Express, 
 |---|---|---|---|
 | 0 | `sql/common/step_0.sql` | 2026-10-25 (confirm) | Done |
 | 1 | `sql/mx_profeco/step_1.sql` | 2026-10-26 | Done (second attempt, see incident) |
-| 2 | `sql/mx_profeco/step_2.sql` | | Pending |
+| 2 | `sql/mx_profeco/step_2.sql` | 2026-10-26 | In progress (block 2.8 done) |
 
 ## Step 0: database and schemas
 
@@ -55,4 +55,18 @@ What the evidence shows:
 
 ## Step 2: feasibility gate profiling
 
-To be completed after running `step_2.sql`.
+Status: in progress. The script is read-only (SELECT). Results are summarized in `docs/sources/MX_profeco.md`; this section records what was run and what changed in the script.
+
+| Block | Topic | Status |
+|---|---|---|
+| 2.1 to 2.7 | Row count, unique ID, date format and range, missing close date, close before filing | Pending |
+| 2.8 | Type of service (checks A to I) | Done. See *Type of service* in `docs/sources/MX_profeco.md` and decision D7 |
+| 2.9 to 2.14 | Provider names, gate criteria 1 and 3, batch closings, amounts, cancelled cases | Pending |
+
+Changes made to `step_2.sql` while running it:
+
+- **Block 2.8 rewritten.** It was written as a search for a service column. It became a test of the hypothesis that no such column exists, with checks A to I.
+- **Brand variants.** Check A showed that "Totalplay" (1,816) and "Total Play" (1,531) are the same company. The brand lists of blocks 2.10 and 2.11 now include both spellings. This is the first case for the provider mapping table of the clean layer.
+- **Result.** `giro` is not the service of the complaint, and `problema_especial` names a service in 27.2% of the rows, with uneven coverage (decision D7).
+
+Still to inspect in 2.8: the values of `clase` and `tipo_producto`.
