@@ -8,6 +8,7 @@ Index of the project documentation. Everything here is written in English.
 |---|---|
 | [`decisions.md`](decisions.md) | Decision log (D1 to D6): context, options considered, decision and reason |
 | [`run_log.md`](run_log.md) | Record of each script execution, with its evidence |
+| [`glossary_of_terms.md`](glossary_of_terms.md) | Short definitions of the technical terms used in the project, with the case where each one mattered |
 | [`sources/`](sources/) | One note per data source: files, evidence, observations, columns and handling rules |
 | [`img/`](img/) | Evidence images (screenshots) |
 

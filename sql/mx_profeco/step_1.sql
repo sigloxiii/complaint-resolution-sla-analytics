@@ -52,7 +52,7 @@ CREATE TABLE stg.profeco_raw (
 GO
 
 -- BULK INSERT reads the file and fills the table.
--- IMPORTANT: the file is read by the SQL Server service, so the
+-- IMPORTANT: the file is read by the SQL Server service, not by you, so the
 -- path must be reachable from the computer where SQL Server runs.
 BULK INSERT stg.profeco_raw
 FROM 'D:\Capstone SLA\data\raw\quejas_telecomunicaciones_2022_junio_2026.csv'
@@ -60,7 +60,9 @@ WITH (
     FORMAT     = 'CSV',    -- the file is a standard CSV (commas between fields)
     FIELDQUOTE = '"',      -- text between double quotes may contain commas
     FIRSTROW   = 2,        -- row 1 is the header with column names: skip it
-    CODEPAGE   = '65001'   -- 65001 = UTF-8, so accents (é, ñ) load correctly
+    CODEPAGE   = '65001',  -- 65001 = UTF-8, so accents (é, ñ) load correctly
+    ROWTERMINATOR = '0x0a' -- this file ends each line with LF only (not CR+LF).
+                           -- Without this line SQL Server fails with error 7301.
 );
 GO
 
@@ -81,8 +83,11 @@ FROM stg.profeco_raw;
 -- * "Bulk load data conversion error (truncation)":
 --     some text is longer than its column. Increase the NVARCHAR size of
 --     the column named in the message and run the script again.
--- * Only one row (or a wrong count) is loaded:
---     the file may use LF-only line endings. Add this line inside the
---     WITH ( ... ) list, after CODEPAGE (remember the comma):
---         ROWTERMINATOR = '0x0a'
+-- * Error 7301 ("Cannot obtain the required interface IID_IColumnsInfo
+--   from OLE DB provider BULK"), or only one row loaded:
+--     SQL Server did not find the line endings it expected. This file uses
+--     LF only, which is why ROWTERMINATOR = '0x0a' is set above. If you
+--     load another file that uses CR+LF, remove that line.
+--     To check a file: SELECT ... FROM OPENROWSET(BULK '<path>', SINGLE_CLOB)
+--     and look for CHAR(13) at the end of the first line.
 -- ---------------------------------------------------------------------
