@@ -52,7 +52,7 @@ CREATE TABLE stg.profeco_raw (
 GO
 
 -- BULK INSERT reads the file and fills the table.
--- IMPORTANT: the file is read by the SQL Server service, not by you, so the
+-- IMPORTANT: the file is read by the SQL Server service, so the
 -- path must be reachable from the computer where SQL Server runs.
 BULK INSERT stg.profeco_raw
 FROM 'D:\Capstone SLA\data\raw\quejas_telecomunicaciones_2022_junio_2026.csv'
