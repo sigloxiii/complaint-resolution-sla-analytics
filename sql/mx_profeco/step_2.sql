@@ -49,6 +49,24 @@ FROM stg.profeco_raw;
 SELECT COUNT(DISTINCT expediente) AS n_distinct_expediente
 FROM stg.profeco_raw;
 
+-- If the two numbers are different, some case IDs are repeated.
+-- HAVING COUNT(*) > 1 keeps only the IDs that appear more than once.
+SELECT expediente, COUNT(*) AS n_times
+FROM stg.profeco_raw
+GROUP BY expediente
+HAVING COUNT(*) > 1
+ORDER BY n_times DESC;
+
+-- Look at the repeated rows completely: are they identical copies or
+-- different cases that share an ID?
+SELECT *
+FROM stg.profeco_raw
+WHERE expediente IN (SELECT expediente
+                     FROM stg.profeco_raw
+                     GROUP BY expediente
+                     HAVING COUNT(*) > 1)
+ORDER BY expediente;
+
 -- ---------------------------------------------------------------------
 -- 2.3 LOOK AT THE RAW DATES
 -- Write down the format you see (for example 2022/01/03 or 2022-01-03).
@@ -186,6 +204,30 @@ FROM stg.profeco_raw
 WHERE nombre_comercial IN ('Totalplay', 'Total Play')
 GROUP BY LEFT(fecha_ingreso, 4), giro
 ORDER BY filing_year, n_complaints DESC;
+
+-- Check H: Check F showed that problema_especial holds a service name in
+-- about 27% of the rows (Telefonía Móvil, Internet, Television, ...).
+-- Is it coherent with the brand? For example, Telcel should be mostly
+-- "Telefonía Móvil" and Izzi should not be "Telefonía Móvil".
+SELECT nombre_comercial, problema_especial, COUNT(*) AS n_complaints
+FROM stg.profeco_raw
+WHERE nombre_comercial IN ('Telcel', 'Movistar', 'At&t', 'Telmex',
+                           'Izzi', 'Megacable', 'Totalplay', 'Total Play')
+  AND problema_especial IN ('Telefonía Móvil', 'Uso de Internet/datos',
+                            'Internet', 'Television', 'Telefonia')
+GROUP BY nombre_comercial, problema_especial
+ORDER BY nombre_comercial, n_complaints DESC;
+
+-- Check I: in which years is problema_especial filled with a service name?
+-- If the share changes a lot by year, it is not a stable indicator.
+SELECT LEFT(fecha_ingreso, 4) AS filing_year,
+       COUNT(*) AS n_complaints,
+       SUM(CASE WHEN problema_especial IN ('Telefonía Móvil', 'Uso de Internet/datos',
+                                           'Internet', 'Television', 'Telefonia')
+                THEN 1 ELSE 0 END) AS n_with_service_name
+FROM stg.profeco_raw
+GROUP BY LEFT(fecha_ingreso, 4)
+ORDER BY filing_year;
 
 -- Check C: the values of the columns that might describe the service.
 SELECT giro, COUNT(*) AS n
@@ -342,3 +384,62 @@ FROM stg.profeco_raw
 WHERE estado_procesal = 'Cancelada'
 GROUP BY LEFT(fecha_ingreso, 4)
 ORDER BY filing_year;
+
+-- ---------------------------------------------------------------------
+-- 2.15 VALUES IN THE WRONG COLUMN
+-- In block 2.8 the column "clase" should only hold Servicio or Bien, but it
+-- also holds Internet, Personal, Escrito and Correo Electrónico (about 430
+-- rows). Those look like values of "medio_ingreso" (how the complaint was
+-- filed). Is it a swap or a shift of columns in those rows?
+-- ---------------------------------------------------------------------
+
+-- Which medio_ingreso do those rows have? If it shows Servicio or Bien,
+-- the two columns were swapped.
+SELECT clase, medio_ingreso, COUNT(*) AS n
+FROM stg.profeco_raw
+WHERE clase NOT IN ('Servicio', 'Bien', '-', 'sin dato')
+GROUP BY clase, medio_ingreso
+ORDER BY n DESC;
+
+-- In which filing years do they appear? A single year points to one
+-- batch or one cut of the file.
+SELECT LEFT(fecha_ingreso, 4) AS filing_year, COUNT(*) AS n
+FROM stg.profeco_raw
+WHERE clase NOT IN ('Servicio', 'Bien', '-', 'sin dato')
+GROUP BY LEFT(fecha_ingreso, 4)
+ORDER BY filing_year;
+
+-- Look at some of those rows next to the neighbor columns.
+SELECT TOP 10 expediente, fecha_ingreso, procedimiento, medio_ingreso,
+       clase, tipo_producto, modalidad_compra, modalidad_pago
+FROM stg.profeco_raw
+WHERE clase NOT IN ('Servicio', 'Bien', '-', 'sin dato');
+
+-- ---------------------------------------------------------------------
+-- 2.16 EXPLAIN THE ODD VALUES FOUND IN 2.6, 2.7 AND 2.13
+-- ---------------------------------------------------------------------
+
+-- 66 cases have no close date (2.6) and 44 of them are cancelled.
+-- What is the estado_procesal of the other 22?
+SELECT estado_procesal, COUNT(*) AS n
+FROM stg.profeco_raw
+WHERE fecha_cierre IS NULL
+   OR fecha_cierre = ''
+GROUP BY estado_procesal
+ORDER BY n DESC;
+
+-- The 3 cases with a close date before the filing date (2.7).
+SELECT expediente, fecha_ingreso, fecha_cierre, estado_procesal, nombre_comercial
+FROM stg.profeco_raw
+WHERE fecha_cierre IS NOT NULL
+  AND fecha_cierre <> ''
+  AND fecha_cierre < fecha_ingreso;
+
+-- monto_recuperado is "-" in 1,479 rows (2.13). Does "-" mean "nothing was
+-- recovered" (for example in cases that were not conciliated) or "unknown"?
+SELECT estado_procesal,
+       COUNT(*) AS n_cases,
+       SUM(CASE WHEN monto_recuperado = '-' THEN 1 ELSE 0 END) AS n_dash
+FROM stg.profeco_raw
+GROUP BY estado_procesal
+ORDER BY n_cases DESC;

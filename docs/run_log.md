@@ -6,7 +6,7 @@ Record of each script execution on the local instance (SQL Server 2025 Express, 
 |---|---|---|---|
 | 0 | `sql/common/step_0.sql` | 2026-10-25 (confirm) | Done |
 | 1 | `sql/mx_profeco/step_1.sql` | 2026-10-26 | Done (second attempt, see incident) |
-| 2 | `sql/mx_profeco/step_2.sql` | 2026-10-26 | In progress (block 2.8 done) |
+| 2 | `sql/mx_profeco/step_2.sql` | 2026-10-26 | In progress (blocks 2.15 and 2.16 pending) |
 
 ## Step 0: database and schemas
 
@@ -59,9 +59,10 @@ Status: in progress. The script is read-only (SELECT). Results are summarized in
 
 | Block | Topic | Status |
 |---|---|---|
-| 2.1 to 2.7 | Row count, unique ID, date format and range, missing close date, close before filing | Pending |
+| 2.1 to 2.7 | Row count, unique ID, date format and range, missing close date, close before filing | Done. 2.2 found 2 repeated IDs (under review) |
 | 2.8 | Type of service (checks A to I) | Done. See *Type of service* in `docs/sources/MX_profeco.md` and decision D7 |
-| 2.9 to 2.14 | Provider names, gate criteria 1 and 3, batch closings, amounts, cancelled cases | Pending |
+| 2.9 to 2.14 | Provider names, gate criteria 1 and 3, batch closings, amounts, cancelled cases | Done. Gate criteria 1 to 3 passed |
+| 2.15, 2.16 | Values in the wrong column (`clase`), explanation of missing close dates, amounts | Pending |
 
 Changes made to `step_2.sql` while running it:
 
@@ -69,4 +70,5 @@ Changes made to `step_2.sql` while running it:
 - **Brand variants.** Check A showed that "Totalplay" (1,816) and "Total Play" (1,531) are the same company. The brand lists of blocks 2.10 and 2.11 now include both spellings. This is the first case for the provider mapping table of the clean layer.
 - **Result.** `giro` is not the service of the complaint, and `problema_especial` names a service in 27.2% of the rows, with uneven coverage (decision D7).
 
-Still to inspect in 2.8: the values of `clase` and `tipo_producto`.
+- **`clase` and `tipo_producto`** do not hold the telecom service. D7 moved from Provisional to Accepted.
+- **New block 2.15** added to the script: `clase` holds 430 values that belong to `medio_ingreso` (Internet, Personal, Escrito, Correo Electrónico). The block checks if the two columns were swapped and in which years it happens.

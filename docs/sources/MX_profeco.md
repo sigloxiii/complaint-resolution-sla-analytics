@@ -97,10 +97,10 @@ Only the end of each file was inspected, and the checks for criteria 1 and 4 wer
 5. `ene_2026` is the largest file by size (14,239 KB) but not by rows: about 447 bytes per row against about 400 in the other files. Its content differs (extra spaces, longer text or other quoting). To be inspected.
 6. Text values differ in capitalization between cuts (for example "Cobro indebido" vs "Cobro Indebido", "DGPCT" vs "Dgpct").
 7. There is **no complete column for the type of service** (internet, mobile, TV). `giro` is a provider classification and `problema_especial` has a service name in only 27% of the rows. Decision D7: analysis at provider level. See the section *Type of service* below.
-8. Rows with `estado_procesal` = Cancelada have provider "-", brand "Otros" and no close date.
+8. Rows with `estado_procesal` = Cancelada: 48 rows, all filed in 2022 to 2024. 44 of them have no close date. The provider "-" appears in only 10 rows of the whole file and the brand "Otros" in 126, so these placeholders are not limited to cancelled cases (block 2.14).
 9. Placeholders are used instead of empty values: `-` in amounts, provider and other columns, and `sin dato` in `medio_ingreso`. All of them become `NULL` in the clean layer.
 10. In `junio_2026`, the last filing date is 2026-05-27 and the last close date is 2026-05-29 (E3, E4).
-11. Dates appear to be text with the year first (for example 2022/01/03). To be confirmed in `step_2.sql` (block 2.4).
+11. Dates are text with the year first and dashes (`yyyy-mm-dd`). Confirmed in `step_2.sql` (blocks 2.3 and 2.4: 0 values with a different format).
 
 ## Columns (23, in file order)
 
@@ -117,7 +117,9 @@ Only the end of each file was inspected, and the checks for criteria 1 and 4 wer
 - [ ] Dataset page ("Ver base de datos") with the list of the five resources, their update dates and the license field.
 - [ ] Page of the data dictionary.
 - [ ] Left-hand columns of the Power Query errors view (cancelled cases with provider "-").
-- [ ] Results of `step_2.sql` in SSMS (blocks 2.1, 2.4 to 2.6, 2.8 to 2.11, 2.13 and 2.14).
+- [x] Results of `step_2.sql` in SSMS (blocks 2.1 to 2.14), received on 2026-10-26.
+- [ ] Results of the repeated-ID queries (block 2.2), block 2.15 and block 2.16.
+- [ ] Results of block 2.8 for `sector`, `procedimiento`, `medio_ingreso`, `tipo_conciliacion` and `estado_procesal`.
 - [ ] Files moved to `data/raw/`.
 - [ ] Save the five Excel captures of the file ends as `mx_profeco_tail_2022_2025.png`, `mx_profeco_tail_ene_2026.png`, `mx_profeco_tail_may_2026.png`, `mx_profeco_tail_junio_2026.png` and `mx_profeco_tail_jul2026.png` in `docs/img/`.
 - [ ] BIT portal: download page and the list of subscriber tables.
@@ -154,8 +156,49 @@ Conclusions (decision D7):
 - `giro` is not the service of the complaint.
 - `problema_especial` is coherent with the brand but incomplete and unstable over time, so it is used only as a labeled partial hint.
 - Other values of `problema_especial` are free text (for example `Cablemas ¿ Cablevision Monterr`, 26 rows), and `-` or `sin dato` (47 rows). The character `¿` may come from the source file; to be checked in the original CSV.
-- The columns `clase` and `tipo_producto` were not inspected yet.
+- `clase` and `tipo_producto` do not give the telecom service either. `clase` is Servicio (31,340) or Bien (4,226), and `tipo_producto` is Servicio Normal (30,314), Producto Nuevo (4,718), Servicio Adicional o Conexo (690), Producto Usado (245) and Producto Reconstruido (23). They separate services from goods (for example phones). Evidence: ![clase and tipo_producto](../img/mx_profeco_step_2_8_check_c_clase_tipo.png)
+- **Anomaly:** `clase` also holds Internet (187), Personal (181), Escrito (61) and Correo Electrónico (1). These are values of `medio_ingreso`, not of `clase`. See block 2.15 of `step_2.sql`.
 
 ## Results of the feasibility gate
 
-To be completed after running `step_2.sql` (see decision D1 in `docs/decisions.md`).
+Run on 2026-10-26 on `stg.profeco_raw` (36,034 rows).
+
+| # | Criterion | Result | Status |
+|---|---|---|---|
+| 1 | At least 2,000 complaints against fixed-network operators | 13,268 (Telmex 2,261; Izzi 3,693; Megacable 3,967; Total Play and Totalplay 3,347) | Passed |
+| 2 | Missing `fecha_cierre` below 30% | 66 rows, 0.18% | Passed |
+| 3 | At least 100 complaints per year for each of the four operators | See the table below | Passed for 2022 to 2025. In 2026 (to May 27) Telmex has 68 |
+| 4 | Subscribers by operator and state in BIT | Not checked yet | Pending |
+
+Complaints by filing year (the two spellings of Total Play are added):
+
+| Operator | 2022 | 2023 | 2024 | 2025 | 2026 (to May 27) |
+|---|---|---|---|---|---|
+| Izzi | 910 | 906 | 791 | 821 | 265 |
+| Megacable | 1,376 | 856 | 780 | 714 | 241 |
+| Telmex | 863 | 527 | 413 | 390 | 68 |
+| Total Play | 931 | 656 | 579 | 1,017 | 164 |
+
+Evidence: ![Block 2.10](../img/mx_profeco_step_2_2_10.png) ![Block 2.11](../img/mx_profeco_step_2_2_11.png) ![Block 2.6](../img/mx_profeco_step_2_2_6.png)
+
+Notes on the gate:
+
+- **2026 is partial.** The data end on 2026-05-27 (about five months), and only closed cases are in the file, so the most recent complaints are missing (right-censoring). The 68 of Telmex is about 14 per month; the threshold of 100 would be reached in about seven months. The criterion text already says that 2026 is partial; the margin is recorded here.
+- **Telmex falls** from 863 (2022) to 390 (2025). The file does not explain why.
+- **Total Play is written two ways**, and each spelling is used in different years: "Totalplay" has no rows in 2023 and 2026, and "Total Play" has none in 2022. Counted separately, the operator would seem to fail the criterion in some years. The provider mapping table must merge them.
+
+### Other findings of `step_2.sql`
+
+| Block | Finding | Handling in the clean layer |
+|---|---|---|
+| 2.1, 2.2 | 36,034 rows, but 36,032 distinct `expediente`: 2 IDs are repeated | Under review (repeated-ID queries) |
+| 2.3 to 2.5 | All dates are `yyyy-mm-dd`. Filing 2022-01-03 to 2026-05-27; closing 2022-01-06 to 2026-05-29 | `TRY_CONVERT` to `date` |
+| 2.6 | 66 rows without close date (44 are cancelled; the other 22 are to be explained) | Flag, no days to close |
+| 2.7 | 3 rows with close date before filing date | Flag, excluded from duration KPIs |
+| 2.9 | 477 distinct legal names and 196 brands. Power Query showed 486 legal names because it compares text with case and accents, while the database collation does not | Provider mapping table by brand |
+| 2.9 | Brand variants: Totalplay and Total Play; Virgin (24) and Virgin Mobile (47); Telmov and Telmovil. Generic values: Otros (126), Otro (64), P. Moral (119), P. Física (117) | Mapping table; generic values become "not identified" |
+| 2.12 | The close date 2026-03-10 has 147 cases; the next highest is 94 (2024-01-23) | Flag days with unusual volume of closings (possible batch closings) |
+| 2.13 | `monto_reclamado`: `-` (32), `sin dato` (4) and `Oo` (1, probably a typing error). `monto_recuperado`: `-` in 1,479 rows. `costo_bien_servicio`: `-` (33) and `sin dato` (1) | Placeholders become `NULL`. The `-` of `monto_recuperado` may mean "nothing recovered" and not "unknown"; to be checked against `estado_procesal` |
+| 2.14 | 48 cancelled cases (21 in 2022, 17 in 2023, 10 in 2024). Provider `-` in 10 rows. Brand Otros in 126 rows | Flag cancelled cases and exclude them from KPIs |
+
+Evidence images for blocks 2.3 to 2.5, 2.7, 2.9, 2.12, 2.13 and 2.14 are saved as `mx_profeco_step_2_2_<block>.png` in `docs/img/`.

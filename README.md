@@ -131,7 +131,7 @@ The names differ from the published data dictionary (which uses upper case, for 
 - **Date format:** the data dictionary documents `dd-mm-yyyy`, but Power Query read the dates with the en-US culture without errors, which points to year-first text (for example `2022/01/03`). All dates are loaded as text, the format is checked in `step_2.sql`, and the conversion is done in the clean layer.
 - **Retroactive updates:** the publisher warns that historical data may change. A frozen copy and the download date will be recorded.
 - **Five cuts are published** and they are not simple, growing versions of one another. Which one to use, and how they overlap, will be confirmed during the gate (decision D4 in `docs/decisions.md`).
-- **No service-type column:** fixed vs mobile has to be inferred from the provider.
+- **No complete service-type column:** `giro` is a provider classification, and `problema_especial` names a service in only 27% of the rows. The analysis is at provider level, and fixed vs mobile comes from a brand mapping (decision D7 in `docs/decisions.md`).
 - **Placeholders** such as `-` (amounts, provider) and `sin dato` (`medio_ingreso`) are used instead of empty values and become `NULL` in the clean layer.
 - **Metric meaning:** days to close measures the duration of the PROFECO conciliation procedure, not the provider's repair time. Only complaints that reach PROFECO are recorded (self-selection bias).
 
@@ -141,9 +141,9 @@ The Mexican dataset is used only if all criteria are met.
 
 | # | Criterion | Result |
 |---|---|---|
-| 1 | At least 2,000 complaints against fixed-network operators (provider-level proxy; the file has no service-type column) | Pending |
-| 2 | Missing `fecha_cierre` below 30% of rows | Pending |
-| 3 | Main providers (Telmex, Izzi, Megacable, Total Play) with at least 100 cases per year | Pending |
+| 1 | At least 2,000 complaints against fixed-network operators (provider-level proxy; the file has no complete service-type column, see D7) | Passed: 13,268 |
+| 2 | Missing `fecha_cierre` below 30% of rows | Passed: 66 rows (0.18%) |
+| 3 | Main providers (Telmex, Izzi, Megacable, Total Play) with at least 100 cases per year | Passed for 2022 to 2025. 2026 is partial (to May): Telmex has 68 |
 | 4 | Subscribers by operator and state downloadable from BIT | Pending |
 
 Evidence from the gate will be stored in `docs/` regardless of the outcome.

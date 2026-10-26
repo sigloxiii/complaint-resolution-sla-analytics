@@ -10,7 +10,7 @@ Each entry records the context, the options considered, the decision and the rea
 | D4 | Choice of the base CSV cut | Provisional |
 | D5 | Layered architecture (medallion-lite) and ELT | Accepted |
 | D6 | Load the CSV with a script instead of the SSMS wizard | Accepted |
-| D7 | Analysis level: provider, with a partial service hint | Provisional |
+| D7 | Analysis level: provider, with a partial service hint | Accepted |
 
 ---
 
@@ -29,7 +29,7 @@ Each entry records the context, the options considered, the decision and the rea
   3. Each of those four operators with at least 100 complaints per year (2026 is partial).
   4. Subscribers by operator and state downloadable from BIT.
 - **Decision rule:** if all four criteria are met, proceed with México. If any criterion fails, document the evidence in `docs/` and migrate to NYC 311. If a criterion fails narrowly, record the margin and revisit the scope before pivoting.
-- **Evidence:** pending (`step_2.sql` results and BIT check).
+- **Evidence (2026-10-26):** criteria 1 to 3 are met (13,268 complaints; 0.18% without close date; at least 100 per year for 2022 to 2025). In 2026, which is partial, Telmex has 68 up to May 27. The BIT check (criterion 4) is pending, so the decision stays open. Details in `docs/sources/MX_profeco.md`.
 
 ---
 
@@ -130,11 +130,12 @@ Each entry records the context, the options considered, the decision and the rea
 
 ## D7. Analysis level: provider, with a partial service hint
 
-- **Status:** Provisional. Pending the review of `clase` and `tipo_producto`, which were not inspected yet.
+- **Status:** Accepted
 - **Date:** 2026-10-26
 - **Context:** the file has no column with the service the complaint is about (internet, mobile or TV). Visual inspection suggested it, and block 2.8 of `step_2.sql` tested it (evidence in `docs/sources/MX_profeco.md`). The results were:
   - `giro` is not constant per brand or per legal name, and it is a catalog of business lines: Izzi has 3,530 of 3,693 complaints as "Empresa de Tv de Paga" and only 80 as internet. It does not describe the complaint.
   - `motivo_reclamacion` and `tipo_reclamacion` never mention a service (0 matches).
+  - `clase` (Servicio 31,340; Bien 4,226) and `tipo_producto` (Servicio Normal, Producto Nuevo, ...) say whether the complaint is about a service or a good, not which telecom service.
   - `problema_especial` holds a service name in 9,806 rows (27.2%). It is coherent with the brand (Telcel and Movistar are mobile; Izzi, Megacable and Total Play are internet, TV and fixed telephony). But its coverage is uneven: 1.0% for Telmex, 11% for Izzi, 28% for Megacable and 42% for Telcel; and it rises over time, from 20% in 2022 to 43% in 2026.
 - **Options:**
   - A. Use `giro` as the service type. Rejected: it is a provider classification.
