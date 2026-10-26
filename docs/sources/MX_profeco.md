@@ -96,7 +96,7 @@ Only the end of each file was inspected, and the checks for criteria 1 and 4 wer
 4. The portal reports a last update on 2026-09-22 (E1). The newest cut may be `jul2026`, which has fewer rows and a different name pattern. The relation between cuts is not understood yet.
 5. `ene_2026` is the largest file by size (14,239 KB) but not by rows: about 447 bytes per row against about 400 in the other files. Its content differs (extra spaces, longer text or other quoting). To be inspected.
 6. Text values differ in capitalization between cuts (for example "Cobro indebido" vs "Cobro Indebido", "DGPCT" vs "Dgpct").
-7. There is **no column for the type of service** (internet, mobile, TV). Fixed vs mobile has to be inferred from the provider.
+7. There is **no column for the type of service** (internet, mobile, TV). `giro` describes the main business of the provider, not the service the complaint is about, so a provider that sells several services (for example Telmex) cannot be split by service. Fixed vs mobile has to be inferred from the provider, and the analysis is at provider level. Confirmed by visual inspection; to be verified in `step_2.sql` block 2.8 (checks A and B).
 8. Rows with `estado_procesal` = Cancelada have provider "-", brand "Otros" and no close date.
 9. Placeholders are used instead of empty values: `-` in amounts, provider and other columns, and `sin dato` in `medio_ingreso`. All of them become `NULL` in the clean layer.
 10. In `junio_2026`, the last filing date is 2026-05-27 and the last close date is 2026-05-29 (E3, E4).

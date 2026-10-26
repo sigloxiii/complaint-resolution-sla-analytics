@@ -112,11 +112,64 @@ WHERE fecha_cierre IS NOT NULL
   AND fecha_cierre < fecha_ingreso;
 
 -- ---------------------------------------------------------------------
--- 2.8 WHICH COLUMN SAYS THE TYPE OF SERVICE?
--- The file has no column called "service" (internet, mobile, TV).
--- These queries list the values of the columns that might help.
--- Look for values such as internet, telefonía móvil, televisión.
+-- 2.8 CONFIRM THAT THE FILE HAS NO "TYPE OF SERVICE" PER COMPLAINT
+-- Hypothesis (from visual inspection): no column says which service the
+-- complaint is about (internet, mobile or TV). "giro" describes the
+-- PROVIDER's main business, not the service of the complaint.
+-- If the hypothesis holds, the analysis is done at provider level and the
+-- limitation is documented. The checks below try to confirm or reject it.
 -- ---------------------------------------------------------------------
+
+-- Check A: does each brand have ONE single giro? If this query returns
+-- rows, those brands appear under more than one giro (a hint that giro
+-- could vary by complaint). An empty result means giro is a provider
+-- attribute, not a complaint attribute.
+SELECT nombre_comercial,
+       COUNT(DISTINCT giro) AS n_giros,
+       COUNT(*)             AS n_complaints
+FROM stg.profeco_raw
+GROUP BY nombre_comercial
+HAVING COUNT(DISTINCT giro) > 1
+ORDER BY n_complaints DESC;
+
+-- Check B: do the free-text reason columns mention a service?
+-- LIKE '%word%' finds the word anywhere in the text.
+-- If the counts are close to 0, there is no usable service information.
+SELECT
+    SUM(CASE WHEN motivo_reclamacion LIKE '%internet%'  THEN 1 ELSE 0 END) AS motivo_internet,
+    SUM(CASE WHEN motivo_reclamacion LIKE '%celular%'
+              OR motivo_reclamacion LIKE '%móvil%'      THEN 1 ELSE 0 END) AS motivo_mobile,
+    SUM(CASE WHEN motivo_reclamacion LIKE '%televis%'
+              OR motivo_reclamacion LIKE '%cable%'      THEN 1 ELSE 0 END) AS motivo_tv,
+    SUM(CASE WHEN tipo_reclamacion  LIKE '%internet%'
+              OR tipo_reclamacion  LIKE '%celular%'
+              OR tipo_reclamacion  LIKE '%televis%'     THEN 1 ELSE 0 END) AS tipo_any_service,
+    SUM(CASE WHEN problema_especial LIKE '%internet%'
+              OR problema_especial LIKE '%celular%'
+              OR problema_especial LIKE '%televis%'     THEN 1 ELSE 0 END) AS problema_any_service
+FROM stg.profeco_raw;
+
+-- Check D: which giro values does each main brand have, and how many
+-- complaints each? (Check A showed that giro is NOT constant per brand.)
+-- "Totalplay" and "Total Play" are the same company written two ways.
+SELECT nombre_comercial, giro, COUNT(*) AS n_complaints
+FROM stg.profeco_raw
+WHERE nombre_comercial IN ('Telmex', 'Izzi', 'Megacable', 'Totalplay', 'Total Play', 'Telcel')
+GROUP BY nombre_comercial, giro
+ORDER BY nombre_comercial, n_complaints DESC;
+
+-- Check E: does giro change inside the SAME legal name (proveedor)?
+-- Empty result = giro is a property of the legal entity.
+-- Rows = giro changes even for one legal entity (so it may describe the complaint).
+SELECT TOP 20 proveedor,
+       COUNT(DISTINCT giro) AS n_giros,
+       COUNT(*)             AS n_complaints
+FROM stg.profeco_raw
+GROUP BY proveedor
+HAVING COUNT(DISTINCT giro) > 1
+ORDER BY n_complaints DESC;
+
+-- Check C: the values of the columns that might describe the service.
 SELECT giro, COUNT(*) AS n
 FROM stg.profeco_raw
 GROUP BY giro
@@ -184,7 +237,7 @@ SELECT nombre_comercial,
        LEFT(fecha_ingreso, 4) AS filing_year,
        COUNT(*)               AS n_complaints
 FROM stg.profeco_raw
-WHERE nombre_comercial IN ('Telmex', 'Izzi', 'Megacable', 'Total Play')
+WHERE nombre_comercial IN ('Telmex', 'Izzi', 'Megacable', 'Totalplay', 'Total Play')
 GROUP BY nombre_comercial, LEFT(fecha_ingreso, 4)
 ORDER BY nombre_comercial, filing_year;
 
@@ -195,7 +248,7 @@ ORDER BY nombre_comercial, filing_year;
 -- ---------------------------------------------------------------------
 SELECT COUNT(*) AS n_fixed_network_complaints
 FROM stg.profeco_raw
-WHERE nombre_comercial IN ('Telmex', 'Izzi', 'Megacable', 'Total Play');
+WHERE nombre_comercial IN ('Telmex', 'Izzi', 'Megacable', 'Totalplay', 'Total Play');
 
 -- ---------------------------------------------------------------------
 -- 2.12 DAYS WITH MANY CLOSINGS (possible batch closings)
