@@ -44,7 +44,9 @@ FROM stg.profeco_raw;
 -- ---------------------------------------------------------------------
 -- 2.2 IS "expediente" (the case ID) UNIQUE?
 -- DISTINCT makes COUNT ignore repeated values.
--- n_distinct_expediente must be equal to n_rows from 2.1.
+-- Result: 36032, two less than n_rows. The database ignores upper and lower
+-- case, so two IDs that differ only in case count as one. Exact comparison
+-- is tested below.
 -- ---------------------------------------------------------------------
 SELECT COUNT(DISTINCT expediente) AS n_distinct_expediente
 FROM stg.profeco_raw;
@@ -236,6 +238,8 @@ GROUP BY LEFT(fecha_ingreso, 4)
 ORDER BY filing_year;
 
 -- Check C: the values of the columns that might describe the service.
+-- (It is listed last because it has the longest output; the documentation
+-- keeps the letters A to I.)
 SELECT giro, COUNT(*) AS n
 FROM stg.profeco_raw
 GROUP BY giro
@@ -449,3 +453,35 @@ SELECT estado_procesal,
 FROM stg.profeco_raw
 GROUP BY estado_procesal
 ORDER BY n_cases DESC;
+
+-- ---------------------------------------------------------------------
+-- 2.17 SHORT AND ABBREVIATED LABELS, AND THE MEANING OF "En Proceso"
+-- Block 2.8 showed that procedimiento has "Conciliación Medios Electrónic"
+-- (14,922 rows) and "Conciliación Medios Electrónicos" (4,827 rows), and
+-- that tipo_conciliacion has "En Proceso" (1,492 rows) although the file
+-- should hold closed cases.
+-- ---------------------------------------------------------------------
+
+-- Length of each value of procedimiento (LEN counts characters).
+-- If the longest values have exactly 30 characters, the source cut the text.
+SELECT procedimiento, LEN(procedimiento) AS n_characters, COUNT(*) AS n
+FROM stg.profeco_raw
+GROUP BY procedimiento
+ORDER BY n_characters DESC, n DESC;
+
+-- tipo_conciliacion against estado_procesal, and how many of those rows
+-- have no close date. "En Proceso" with a close date would mean that the
+-- label is not the state of the case.
+SELECT tipo_conciliacion, estado_procesal,
+       COUNT(*) AS n,
+       SUM(CASE WHEN fecha_cierre IS NULL OR fecha_cierre = '' THEN 1 ELSE 0 END) AS n_without_cierre
+FROM stg.profeco_raw
+GROUP BY tipo_conciliacion, estado_procesal
+ORDER BY tipo_conciliacion, n DESC;
+
+-- procedimiento against estado_procesal: do "Queja" and the other
+-- procedures that are not a conciliation end in the same outcomes?
+SELECT procedimiento, estado_procesal, COUNT(*) AS n
+FROM stg.profeco_raw
+GROUP BY procedimiento, estado_procesal
+ORDER BY procedimiento, n DESC;

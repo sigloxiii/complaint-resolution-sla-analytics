@@ -6,7 +6,7 @@
 -- How to run: open it in SSMS, connect to .\SQLEXPRESS and press F5.
 --             Run it ONCE. If you run it again it fails with an
 --             "already exists" error, which is harmless.
---             it is assumed the DB doesn´t exists
+--             It assumes the database does not exist yet.
 -- To start over: in SSMS, right-click the database "complaint_sla" ->
 --             Delete, then run this script again.
 -- =====================================================================

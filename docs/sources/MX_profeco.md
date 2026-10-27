@@ -1,6 +1,6 @@
 # Source record: PROFECO telecommunications complaints (México)
 
-Exploration log of the source. The first part was written **before** running the profiling scripts, so that the starting point and the expectations are on record. Evidence images are stored in `docs/img/` and their names start with `mx_profeco_`. The results of `step_2.sql` are added after the gate (see the end of this file).
+Exploration log of the source. The first part was written **before** running the profiling scripts, so that the starting point and the expectations are on record. Evidence images are stored in `docs/img/`: the names of the inspection images start with `mx_profeco_`, and the SSMS evidence is named `step_<N>_<block>.png`. The results of `step_2.sql` are added after the gate (see the end of this file).
 
 ## Publisher and access
 
@@ -46,7 +46,7 @@ Five CSV files, all modified on 24/10/2026. At this point they are still in `dat
 
 ![E3: fecha_ingreso profile](../img/mx_profeco_inspeccion_fuentes_01.png)
 
-36,034 rows, 0 errors, 0 empty values, 1,155 distinct dates. Minimum 03/01/2022 and maximum 27/05/2026 (the year is cut off in the capture and is to be confirmed in `step_2.sql`, block 2.5).
+36,034 rows, 0 errors, 0 empty values, 1,155 distinct dates. Minimum 03/01/2022 and maximum 27/05/2026 (the year is cut off in the capture; confirmed in `step_2.sql`, block 2.5: 2022-01-03 to 2026-05-27).
 
 ### E4. Profile of `fecha_cierre` (junio_2026, Power Query)
 
@@ -119,9 +119,13 @@ Only the end of each file was inspected, and the checks for criteria 1 and 4 wer
 - [ ] Left-hand columns of the Power Query errors view (cancelled cases with provider "-").
 - [x] Results of `step_2.sql` in SSMS (blocks 2.1 to 2.14), received on 2026-10-26.
 - [x] Results of the repeated-ID queries (block 2.2), block 2.15 and block 2.16.
-- [ ] Results of block 2.8 for `sector`, `procedimiento`, `medio_ingreso` and `tipo_conciliacion`.
-- [ ] Files moved to `data/raw/`.
-- [ ] Save the five Excel captures of the file ends as `mx_profeco_tail_2022_2025.png`, `mx_profeco_tail_ene_2026.png`, `mx_profeco_tail_may_2026.png`, `mx_profeco_tail_junio_2026.png` and `mx_profeco_tail_jul2026.png` in `docs/img/`.
+- [x] Results of block 2.8 for `sector`, `procedimiento`, `medio_ingreso` and `tipo_conciliacion`.
+- [ ] Results of block 2.17 (length of `procedimiento`, meaning of `En Proceso`).
+- [x] Files moved to `data/raw/` (the base file is loaded from there by `step_1.sql`).
+- [x] Excel captures of the file ends saved in `docs/img/` (`mx_profeco_tail_*.png`).
+- [ ] Capture checks B and C (`giro`) of block 2.8 as `step_2_8_b.png` and `step_2_8_c_giro.png`.
+- [ ] Re-run block 2.2 with the exact comparison (expected 36,034) and replace `step_2_2.png`.
+- [ ] SHA-256 of the base file, and the license of the dataset.
 - [ ] BIT portal: download page and the list of subscriber tables.
 
 ## Type of service (`step_2.sql`, block 2.8)
@@ -158,6 +162,62 @@ Conclusions (decision D7):
 - Other values of `problema_especial` are free text (for example `Cablemas ¿ Cablevision Monterr`, 26 rows), and `-` or `sin dato` (47 rows). The character `¿` may come from the source file; to be checked in the original CSV.
 - `clase` and `tipo_producto` do not give the telecom service either. `clase` is Servicio (31,340) or Bien (4,226), and `tipo_producto` is Servicio Normal (30,314), Producto Nuevo (4,718), Servicio Adicional o Conexo (690), Producto Usado (245) and Producto Reconstruido (23). They separate services from goods (for example phones). Evidence: ![clase and tipo_producto](../img/step_2_8_c_clase.png)
 - **Anomaly:** `clase` also holds Internet (187), Personal (181), Escrito (61) and Correo Electrónico (1). These are values of `medio_ingreso`, not of `clase`: in those rows the two columns are swapped (see the section below). The counts above are shown as loaded; after the correction, Servicio is 31,692 and Bien is 4,304.
+
+## Other columns (`step_2.sql`, block 2.8)
+
+Values of the columns that describe how the complaint was filed and handled (run on 2026-10-26).
+
+**`sector`:** a single value, `Telecomunicaciones`, in all 36,034 rows. It carries no information and is not used in the model. Evidence: ![sector](../img/step_2_8_c_sector.png)
+
+**`medio_ingreso`** (channel). Evidence: ![medio_ingreso](../img/step_2_8_c_medio.png)
+
+| Value | As loaded | After correcting the swap (2.15) |
+|---|---|---|
+| Internet | 19,585 | 19,772 |
+| Personal | 12,878 | 13,059 |
+| Escrito | 2,987 | 3,048 |
+| Correo Electrónico | 113 | 114 |
+| Teléfono | 6 | 6 |
+| Servicio | 352 | 0 |
+| Bien | 78 | 0 |
+| `-` | 34 | 34 |
+| `sin dato` | 1 | 1 |
+
+The 352 "Servicio" and 78 "Bien" are exactly the 430 swapped rows of block 2.15, so the swap explains every non-channel value of this column. `-` and `sin dato` (35 rows) become `NULL`.
+
+**`procedimiento`.** Evidence: ![procedimiento](../img/step_2_8_c_proc.png)
+
+| Value | Rows |
+|---|---|
+| Conciliación Medios Electrónic | 14,922 |
+| Conciliación Personal | 14,804 |
+| Conciliación Medios Electrónicos | 4,827 |
+| Queja | 1,126 |
+| Conciliación Telefónica | 241 |
+| Proc. Infracciones a la Ley | 56 |
+| `-` | 47 |
+| `0` | 5 |
+| Sol. de Dictamen | 4 |
+| Resol al Recurso de Rev. Admin | 1 |
+| Cumpliment Sentencia o Resoluc | 1 |
+
+- **Labels cut at 30 characters.** "Conciliación Medios Electrónic", "Resol al Recurso de Rev. Admin" and "Cumpliment Sentencia o Resoluc" have exactly 30 characters, while "Conciliación Medios Electrónicos" (32) also exists in the same column, so the width of the SSMS grid is not the cause. The same procedure is written two ways (14,922 + 4,827 = 19,749 rows). To be confirmed with the length query of block 2.17. Handling: a mapping of labels in the clean layer.
+- **Placeholders:** `-` (47) and `0` (5) become `NULL`.
+- **Procedures that are not a conciliation:** "Queja" (1,126), "Proc. Infracciones a la Ley" (56), "Sol. de Dictamen" (4) and two administrative procedures (2). They may have different durations, so the clean layer keeps a `procedure_group` and the duration KPIs are checked with and without them.
+
+**`tipo_conciliacion`.** Evidence: ![tipo_conciliacion](../img/step_2_8_c_tipoconc.png)
+
+| Value | Rows |
+|---|---|
+| Turnada a Concil Medios Elec. | 19,769 |
+| Turnada a Concil Person P/seg | 14,492 |
+| En Proceso | 1,492 |
+| Turnada a Concil Telefónica | 250 |
+| Cancelada | 31 |
+
+- The labels are abbreviated by the publisher. The groups (electronic means, in person, telephone) agree in size with `medio_ingreso` and `procedimiento`, but they do not match exactly.
+- **`En Proceso` (1,492 rows) is not understood.** The file is supposed to hold closed cases, and only 66 rows have no close date. Block 2.17 crosses this column with `estado_procesal` and with the missing close date. Until then, the statement that the file has closed cases only is an assumption.
+- `Cancelada` appears in 31 rows here and in 48 rows of `estado_procesal`, so the two columns do not mean the same.
 
 ## Results of the feasibility gate
 
@@ -201,7 +261,7 @@ Notes on the gate:
 | 2.13 | `monto_reclamado`: `-` (32), `sin dato` (4) and `Oo` (1, probably a typing error). `monto_recuperado`: `-` in 1,479 rows. `costo_bien_servicio`: `-` (33) and `sin dato` (1) | Placeholders become `NULL`. The `-` of `monto_recuperado` is spread over all outcomes at a low rate, so it means "unknown" and not "nothing recovered" |
 | 2.14 | 48 cancelled cases (21 in 2022, 17 in 2023, 10 in 2024). Provider `-` in 10 rows. Brand Otros in 126 rows | Flag cancelled cases and exclude them from KPIs |
 
-Evidence images for blocks 2.3 to 2.5, 2.7, 2.9, 2.12, 2.13 and 2.14 are saved as `step_2_<block>.png` in `docs/img/` (block 2.9 is `step_2_9.png`).
+Evidence images of each block: [2.1](../img/step_2_1.png), [2.3](../img/step_2_3.png), [2.4](../img/step_2_4.png), [2.5](../img/step_2_5.png), [2.7](../img/step_2_7.png), [2.9](../img/step_2_9.png), [2.12](../img/step_2_12.png), [2.13](../img/step_2_13.png) and [2.14](../img/step_2_14.png).
 
 ### Repeated IDs, swapped columns and missing close dates (blocks 2.2, 2.15 and 2.16)
 

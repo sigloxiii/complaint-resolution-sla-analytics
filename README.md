@@ -10,7 +10,7 @@
 
 ## Author
 
-**Rafael Cansigno Peláez** ([@sigloxiii](https://github.com/sigloxiii)): telecommunications engineer transitioning into data analytics.
+**Eng. Rafael Cansigno Peláez** ([@sigloxiii](https://github.com/sigloxiii)): telecommunications engineer transitioning into data analytics.
 
 This is my second portfolio project, following the Google Data Analytics certificate capstone: [ftth-qos-qoe-risk-framework](https://github.com/sigloxiii/ftth-qos-qoe-risk-framework). All design decisions, scripts and findings in this repository are documented under my authorship.
 
@@ -84,8 +84,8 @@ The pipeline stages above describe how the data flow. The project phases below d
 
 | Phase | Description | Status |
 |---|---|---|
-| 0 | Repository scaffold and feasibility gate on the Mexican dataset | In progress |
-| 1 | Create database and schemas; load raw data into `stg` | In progress (`step_0` done) |
+| 0 | Repository scaffold and feasibility gate on the Mexican dataset | In progress (criteria 1 to 3 passed; BIT check pending) |
+| 1 | Create database and schemas; load raw data into `stg` | Done (`step_0` and `step_1`) |
 | 2 | Clean and normalize: types, durations, provider mapping | Pending |
 | 3 | Load denominators (subscribers) and build dimensions | Pending |
 | 4 | Build the `mart` star schema; SQL validation queries | Pending |
@@ -98,7 +98,7 @@ The pipeline stages above describe how the data flow. The project phases below d
 
 ## Initial dataset exploration: México
 
-Desk research on the candidate sources is complete, and the five PROFECO files were downloaded and inspected in Power Query. Profiling in SQL (`step_2.sql`) is part of the feasibility gate and is **pending**. The evidence and the details of each file are in [`docs/sources/MX_profeco.md`](docs/sources/MX_profeco.md).
+Desk research on the candidate sources is complete, and the five PROFECO files were downloaded and inspected in Power Query. The base file (36,034 rows) was loaded into SQL Server and profiled with `step_2.sql`: criteria 1 to 3 of the feasibility gate are met, and the BIT check (criterion 4) is **pending**. The evidence and the details of each file are in [`docs/sources/MX_profeco.md`](docs/sources/MX_profeco.md).
 
 ### Candidate sources
 
@@ -123,16 +123,20 @@ Desk research on the candidate sources is complete, and the five PROFECO files w
 | Amounts | `costo_bien_servicio`, `monto_reclamado`, `monto_recuperado` |
 | Purchase | `clase`, `tipo_producto`, `modalidad_compra`, `modalidad_pago` |
 
-The names differ from the published data dictionary (which uses upper case, for example `ID_EXP`). The meaning of `odeco`, `giro` and `clase` is still to be confirmed.
+The names differ from the published data dictionary (which uses upper case, for example `ID_EXP`). Profiling showed that `giro` classifies the provider (not the service of the complaint) and that `clase` separates services from goods. The meaning of `odeco` is still to be confirmed.
 
-### Known caveats (identified before profiling)
+### Known caveats
 
 - **Provider names vary** between records (for example, with and without the corporate suffix), so a normalization mapping table is required.
-- **Date format:** the data dictionary documents `dd-mm-yyyy`, but Power Query read the dates with the en-US culture without errors, which points to year-first text (for example `2022/01/03`). All dates are loaded as text, the format is checked in `step_2.sql`, and the conversion is done in the clean layer.
+- **Date format:** the data dictionary documents `dd-mm-yyyy`, but the file uses year-first text with dashes (`2022-01-03`), as confirmed in `step_2.sql` (0 values with another format). All dates are loaded as text and converted in the clean layer.
 - **Retroactive updates:** the publisher warns that historical data may change. A frozen copy and the download date will be recorded.
 - **Five cuts are published** and they are not simple, growing versions of one another. Which one to use, and how they overlap, will be confirmed during the gate (decision D4 in `docs/decisions.md`).
 - **No complete service-type column:** `giro` is a provider classification, and `problema_especial` names a service in only 27% of the rows. The analysis is at provider level, and fixed vs mobile comes from a brand mapping (decision D7 in `docs/decisions.md`).
 - **Placeholders** such as `-` (amounts, provider) and `sin dato` (`medio_ingreso`) are used instead of empty values and become `NULL` in the clean layer.
+- **Values in the wrong column:** in 430 rows (all filed in 2022) the values of `clase` and `medio_ingreso` are swapped. They are corrected in the clean layer and flagged.
+- **Case-insensitive IDs:** two `expediente` values differ only in case and belong to different providers. They are not duplicates, and the data are not deduplicated by ID.
+- **Closed cases only:** the file has no open cases, so the most recent months are incomplete (right-censoring) and resolution times can look shorter than reality.
+- **Abbreviated and cut labels:** `procedimiento` and `tipo_conciliacion` hold abbreviated text, and some `procedimiento` values seem cut at 30 characters (for example "Conciliación Medios Electrónic"), so the same label appears spelled two ways. They are mapped in the clean layer.
 - **Metric meaning:** days to close measures the duration of the PROFECO conciliation procedure, not the provider's repair time. Only complaints that reach PROFECO are recorded (self-selection bias).
 
 ### Feasibility gate
@@ -187,6 +191,9 @@ sql/
   mx_profeco/      # one folder per source: load and clean (stg → clean)
 powerbi/           # .pbix and PDF report
 docs/
+  decisions.md    # decision log (D1 to D7)
+  run_log.md       # script runs and their evidence
+  glossary_of_terms.md
   sources/         # one note per data source
   img/             # evidence images, named <topic>_<name>.png
 ```
