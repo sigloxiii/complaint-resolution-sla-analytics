@@ -126,7 +126,8 @@ Only the end of each file was inspected, and the checks for criteria 1 and 4 wer
 - [ ] Capture checks B and C (`giro`) of block 2.8 as `step_2_8_b.png` and `step_2_8_c_giro.png`.
 - [ ] Re-run block 2.2 with the exact comparison (expected 36,034) and replace `step_2_2.png`.
 - [ ] SHA-256 of the base file, and the license of the dataset.
-- [ ] BIT portal: download page and the list of subscriber tables.
+- [x] BIT portal: download pages and the list of tables (criterion 4).
+- [ ] BIT: confirm that Grupo Salinas is Total Play (`EMPRESA` column), and read the terms of use.
 
 ## Type of service (`step_2.sql`, block 2.8)
 
@@ -237,7 +238,45 @@ Run on 2026-10-26 on `stg.profeco_raw` (36,034 rows).
 | 1 | At least 2,000 complaints against fixed-network operators | 13,268 (Telmex 2,261; Izzi 3,693; Megacable 3,967; Total Play and Totalplay 3,347) | Passed |
 | 2 | Missing `fecha_cierre` below 30% | 66 rows, 0.18% | Passed |
 | 3 | At least 100 complaints per year for each of the four operators | See the table below | Passed for 2022 to 2025. In 2026 (to May 27) Telmex has 68 |
-| 4 | Subscribers by operator and state in BIT | Not checked yet | Pending |
+| 4 | Subscribers by operator and state in BIT | Accesses by operator group and state, 2013 to December 2024 (see below) | Passed, with limitations |
+
+### Criterion 4: BIT check (2026-10-27)
+
+Source: BIT (Banco de Información de Telecomunicaciones, CRT), module *Descarga de datos*. The files `Servicio Fijo de Acceso a Internet TODO_BAF.zip` (10 CSV) and `Servicio Fijo de Telefonia TODO_TF.zip` (13 CSV) were downloaded to `data/BIT/` (not versioned). The definitions come from the IFT *Manual de definiciones de los indicadores estadísticos de telecomunicaciones* (2018).
+
+**Table checked: `TD_ACC_BAF_ITE_VA`** (fixed broadband accesses, manual indicator 4.3.1).
+
+| Item | Finding |
+|---|---|
+| Rows | 592,281 |
+| Columns | `FOLIO`, `K_ENTIDAD`, `K_MUNICIPIO`, `K_ACCESO_INTERNET`, `TECNO_ACCESO_INTERNET`, `FECHA`, `ANIO`, `MES`, `K_EMPRESA`, `EMPRESA`, `CONCESIONARIO`, `A_TOTAL_E`, `K_GRUPO`, `GRUPO`, `ENTIDAD`, `MUNICIPIO` |
+| Grain | One row per folio, state, municipality, technology, company and month. `A_TOTAL_E` is the number of accesses |
+| Period | January 2013 to December 2024 (minimum year 2013, last year 2024 with 12 months) |
+| Operator | Company and group. The four groups of interest appear as `AMÉRICA MÓVIL` (Telmex), `GRUPO TELEVISA` (Izzi), `MEGACABLE-MCM` and `GRUPO SALINAS` (Total Play, to be confirmed with `EMPRESA`) |
+| Date format | `FECHA` is text like `15Jan2021`; use `ANIO` and `MES` |
+| Encoding | Not UTF-8 (a CSV viewer rejected it); the load script must set the code page |
+
+Accesses by group in December 2024 (pivot table in Excel, filters `ANIO` = 2024 and `MES` = 12):
+
+| Group | Accesses | States with data (of 32) |
+|---|---|---|
+| América Móvil | 11,208,977 | 31 (none in state 99) |
+| Grupo Televisa | 5,970,288 | 32 |
+| Megacable-MCM | 5,316,545 | 31 (none in Quintana Roo, state 23) |
+| Grupo Salinas | 5,313,779 | 32 |
+| All four | 27,809,589 | 32 states plus state 99 |
+
+- Accesses without state (`K_ENTIDAD` = 99, "Sin información de Entidad"): 35,990, which is **0.13%** of the total.
+- Some groups have very few accesses in some states (Grupo Salinas: 137 in Tlaxcala, 190 in Zacatecas, 228 in Baja California Sur, 419 in Campeche, 568 in Oaxaca; Grupo Televisa: 562 in Baja California Sur). State rates need a minimum denominator.
+- The portal footer says "Algunos Derechos Reservados"; the terms of use were not read yet.
+- The fixed telephony table `TD_LINEAS_TELFIJA_ITE_VA` and the subscriptions table `TD_SUS_BAF_ITE_VA` were not inspected. They are an improvement, not a condition of the gate.
+- Background: a news report (Yahoo Noticias, January 2026) said the BIT had gone 143 days without a significant update after the IFT was replaced by the CRT. The December 2024 end of the series is consistent with that delay.
+
+**Consequences for the design**
+
+- Rates per 100,000 accesses can only be computed for 2022 to 2024. Complaints of 2025 and 2026 are used for volume and duration.
+- The BIT operator is a group. The provider mapping table (`data/reference/`) must map each PROFECO brand to a group.
+- Evidence files: `bit_zip_baf.png`, `bit_zip_tf.png`, `bit_market_share_baf.png`, `bit_market_share_telfija.png`, `bit_acc_baf_pivot_entidad.png`, `bit_acc_baf_pivot_grupo.png`, `BIT_servicio_fijo_de_acceso_a_internet.png`, `BIT_servicio_fijo_de_telefonia.png` (in `docs/img/`).
 
 Complaints by filing year (the two spellings of Total Play are added):
 

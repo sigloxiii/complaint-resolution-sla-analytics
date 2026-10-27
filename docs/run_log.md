@@ -4,9 +4,9 @@ Record of each script execution on the local instance (SQL Server 2025 Express, 
 
 | Step | Script | Date | Result |
 |---|---|---|---|
-| 0 | `sql/common/step_0.sql` | 2026-10-25 (confirm) | Done |
+| 0 | `sql/common/step_0.sql` | 2026-10-25 | Done |
 | 1 | `sql/mx_profeco/step_1.sql` | 2026-10-26 | Done (second attempt, see incident) |
-| 2 | `sql/mx_profeco/step_2.sql` | 2026-10-26 | In progress (exact-ID check of block 2.2 pending) |
+| 2 | `sql/mx_profeco/step_2.sql` | 2026-10-26 | Done (gate passed on 2026-10-27; exact-ID check of block 2.2 pending) |
 
 ## Step 0: database and schemas
 
@@ -73,3 +73,7 @@ Changes made to `step_2.sql` while running it:
 - **`clase` and `tipo_producto`** do not hold the telecom service. D7 moved from Provisional to Accepted.
 - **New block 2.15** added to the script: `clase` holds 430 values that belong to `medio_ingreso` (Internet, Personal, Escrito, Correo Electrónico). The block checks if the two columns were swapped and in which years it happens.
 - **New block 2.17** added to the script. It showed that `En Proceso` rows have final outcomes (so it is not an open case) and that 62 rows of `procedimiento` are legal procedures that are not a conciliation.
+
+## Feasibility gate result (2026-10-27)
+
+All four criteria passed, so decision D1 is accepted (México). Criterion 4 was checked by hand on the BIT downloads (`TD_ACC_BAF_ITE_VA`, pivot table in Excel); the details are in `docs/sources/MX_profeco.md`. Next: `step_3.sql` (clean layer).

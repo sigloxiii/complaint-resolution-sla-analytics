@@ -4,7 +4,7 @@
 
 > SQL Server + Power BI analysis of complaint resolution times against service-level targets, by responsible party and region, built on open government data. Source-agnostic star schema with per-source ingestion adapters.
 
-![License](https://img.shields.io/badge/License-MIT-yellow) ![Data](https://img.shields.io/badge/Data-PROFECO_%2B_BIT_M%C3%A9xico-blue) ![Status](https://img.shields.io/badge/Status-Phase_0_feasibility_gate-orange)
+![License](https://img.shields.io/badge/License-MIT-yellow) ![Data](https://img.shields.io/badge/Data-PROFECO_%2B_BIT_M%C3%A9xico-blue) ![Status](https://img.shields.io/badge/Status-Phase_2_clean_layer-blue)
 
 ---
 
@@ -84,7 +84,7 @@ The pipeline stages above describe how the data flow. The project phases below d
 
 | Phase | Description | Status |
 |---|---|---|
-| 0 | Repository scaffold and feasibility gate on the Mexican dataset | In progress (criteria 1 to 3 passed; BIT check pending) |
+| 0 | Repository scaffold and feasibility gate on the Mexican dataset | Done (4 of 4 criteria passed, decision D1) |
 | 1 | Create database and schemas; load raw data into `stg` | Done (`step_0` and `step_1`) |
 | 2 | Clean and normalize: types, durations, provider mapping | Pending |
 | 3 | Load denominators (subscribers) and build dimensions | Pending |
@@ -98,7 +98,7 @@ The pipeline stages above describe how the data flow. The project phases below d
 
 ## Initial dataset exploration: México
 
-Desk research on the candidate sources is complete, and the five PROFECO files were downloaded and inspected in Power Query. The base file (36,034 rows) was loaded into SQL Server and profiled with `step_2.sql`: criteria 1 to 3 of the feasibility gate are met, and the BIT check (criterion 4) is **pending**. The evidence and the details of each file are in [`docs/sources/MX_profeco.md`](docs/sources/MX_profeco.md).
+Desk research on the candidate sources is complete, and the five PROFECO files were downloaded and inspected in Power Query. The base file (36,034 rows) was loaded into SQL Server and profiled with `step_2.sql`: the four criteria of the feasibility gate are met (decision D1, accepted on 2026-10-27). BIT gives fixed broadband accesses by operator group and state up to December 2024, so rates per 100,000 accesses are limited to 2022 to 2024. The evidence and the details of each file are in [`docs/sources/MX_profeco.md`](docs/sources/MX_profeco.md).
 
 ### Candidate sources
 
@@ -148,7 +148,7 @@ The Mexican dataset is used only if all criteria are met.
 | 1 | At least 2,000 complaints against fixed-network operators (provider-level proxy; the file has no complete service-type column, see D7) | Passed: 13,268 |
 | 2 | Missing `fecha_cierre` below 30% of rows | Passed: 66 rows (0.18%) |
 | 3 | Main providers (Telmex, Izzi, Megacable, Total Play) with at least 100 cases per year | Passed for 2022 to 2025. 2026 is partial (to May): Telmex has 68 |
-| 4 | Subscribers by operator and state downloadable from BIT | Pending |
+| 4 | Subscribers by operator and state downloadable from BIT | Passed with limitations: accesses by operator group and state, January 2013 to December 2024 |
 
 Evidence from the gate will be stored in `docs/` regardless of the outcome.
 

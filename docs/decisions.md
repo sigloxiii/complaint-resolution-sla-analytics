@@ -4,7 +4,7 @@ Each entry records the context, the options considered, the decision and the rea
 
 | ID | Decision | Status |
 |---|---|---|
-| D1 | Data source: México (PROFECO) or US (NYC 311) | Open |
+| D1 | Data source: México (PROFECO) or US (NYC 311) | Accepted (México) |
 | D2 | Clean the data in SQL instead of Power Query | Accepted |
 | D3 | Repository name and design | Accepted |
 | D4 | Choice of the base CSV cut | Provisional |
@@ -16,8 +16,8 @@ Each entry records the context, the options considered, the decision and the rea
 
 ## D1. Data source: México (PROFECO) or US (NYC 311)
 
-- **Status:** Open. The provisional choice is México, subject to the feasibility gate.
-- **Date:** 2026-10-25
+- **Status:** Accepted (México), on 2026-10-27. The four gate criteria are met; see the evidence below.
+- **Date:** 2026-10-25 (opened); 2026-10-27 (accepted)
 - **Context:** The project analyzes complaint resolution times against service-level targets. A México telecom dataset fits the author's domain. NYC 311 is the US fallback, with larger volume but less domain fit.
 - **Options:**
   - A. PROFECO complaints + BIT subscribers (México).
@@ -29,7 +29,17 @@ Each entry records the context, the options considered, the decision and the rea
   3. Each of those four operators with at least 100 complaints per year (2026 is partial).
   4. Subscribers by operator and state downloadable from BIT.
 - **Decision rule:** if all four criteria are met, proceed with México. If any criterion fails, document the evidence in `docs/` and migrate to NYC 311. If a criterion fails narrowly, record the margin and revisit the scope before pivoting.
-- **Evidence (2026-10-26):** criteria 1 to 3 are met (13,268 complaints; 0.18% without close date; at least 100 per year for 2022 to 2025). In 2026, which is partial, Telmex has 68 up to May 27. The BIT check (criterion 4) is pending, so the decision stays open. Details in `docs/sources/MX_profeco.md`.
+- **Evidence:**
+  - Criteria 1 to 3 (2026-10-26): 13,268 complaints; 0.18% without close date; at least 100 per year for 2022 to 2025. In 2026, which is partial, Telmex has 68 up to May 27.
+  - Criterion 4 (2026-10-27): the BIT table `TD_ACC_BAF_ITE_VA` (fixed broadband accesses) has 592,281 rows, from January 2013 to December 2024, by operator group and state. In December 2024 the four groups have 27.8 million accesses (América Móvil 11.2 M, Grupo Televisa 6.0 M, Megacable-MCM 5.3 M, Grupo Salinas 5.3 M), and only 0.13% has no state. Details in `docs/sources/MX_profeco.md`.
+- **Decision:** proceed with México. The pipeline is not redesigned.
+- **Limitations accepted:**
+  - Analysis by provider and not by service (D7). The duration measures the PROFECO procedure, not the repair time. Only complaints that reach PROFECO are recorded (self-selection). Closed cases only, so the latest months are incomplete.
+  - BIT gives accesses by operator **group** (not by brand) and ends in December 2024. Rates per 100,000 accesses are possible for 2022 to 2024 only; 2025 and 2026 are used for volume and duration.
+  - Accesses are not subscriptions. A subscription can have several accesses.
+  - Some groups have very few accesses in some states (for example Grupo Salinas has 137 in Tlaxcala), so a minimum denominator is needed before showing a state rate.
+- **Still open:** confirm that Grupo Salinas is Total Play (check the `EMPRESA` column when loading the BIT), the BIT terms of use, the dataset license, the overlap audit of the five cuts (D4) and the exact-ID check of block 2.2.
+- **Revisit if:** the BIT mapping does not match the PROFECO brands, or the license does not allow publishing derived data.
 
 ---
 
