@@ -130,7 +130,7 @@ The names differ from the published data dictionary (which uses upper case, for 
 - **Provider names vary** between records (for example, with and without the corporate suffix), so a normalization mapping table is required.
 - **Date format:** the data dictionary documents `dd-mm-yyyy`, but the file uses year-first text with dashes (`2022-01-03`), as confirmed in `step_2.sql` (0 values with another format). All dates are loaded as text and converted in the clean layer.
 - **Retroactive updates:** the publisher warns that historical data may change. A frozen copy and the download date will be recorded.
-- **Five cuts are published** and they are not simple, growing versions of one another. Which one to use, and how they overlap, will be confirmed during the gate (decision D4 in `docs/decisions.md`).
+- **Five cuts are published** and they are not simple, growing versions of one another. Which one to use, and how they overlap, will be confirmed with the overlap audit (decision D4 in `docs/decisions.md`).
 - **No complete service-type column:** `giro` is a provider classification, and `problema_especial` names a service in only 27% of the rows. The analysis is at provider level, and fixed vs mobile comes from a brand mapping (decision D7 in `docs/decisions.md`).
 - **Placeholders** such as `-` (amounts, provider) and `sin dato` (`medio_ingreso`) are used instead of empty values and become `NULL` in the clean layer.
 - **Values in the wrong column:** in 430 rows (all filed in 2022) the values of `clase` and `medio_ingreso` are swapped. They are corrected in the clean layer and flagged.
@@ -141,7 +141,7 @@ The names differ from the published data dictionary (which uses upper case, for 
 
 ### Feasibility gate
 
-The Mexican dataset is used only if all criteria are met.
+The Mexican dataset is used only if all criteria are met. They were checked on 2026-10-27 and all four are met (decision D1).
 
 | # | Criterion | Result |
 |---|---|---|
@@ -150,13 +150,13 @@ The Mexican dataset is used only if all criteria are met.
 | 3 | Main providers (Telmex, Izzi, Megacable, Total Play) with at least 100 cases per year | Passed for 2022 to 2025. 2026 is partial (to May): Telmex has 68 |
 | 4 | Subscribers by operator and state downloadable from BIT | Passed with limitations: accesses by operator group and state, January 2013 to December 2024 |
 
-Evidence from the gate will be stored in `docs/` regardless of the outcome.
+The evidence of the gate is stored in `docs/` (see `docs/sources/MX_profeco.md` and `docs/run_log.md`).
 
 ---
 
 ## Fallback: US datasets
 
-If the Mexican data fails the gate, the project pivots to a US open dataset **without redesigning the pipeline**. The leading candidate is the NYC 311 Service Requests dataset from [NYC Open Data](https://opendata.cityofnewyork.us/), which has creation and closing dates, agency, complaint type and borough.
+The gate was passed, so this contingency is not in use. If a later finding invalidates the Mexican data, the project pivots to a US open dataset **without redesigning the pipeline**. The leading candidate is the NYC 311 Service Requests dataset from [NYC Open Data](https://opendata.cityofnewyork.us/), which has creation and closing dates, agency, complaint type and borough.
 
 | Stays the same | Changes |
 |---|---|
@@ -204,7 +204,7 @@ The structure is limited to two folder levels.
 
 ## Data sources and licenses
 
-To be completed during the gate: source URL, license, download date and attribution for each dataset. The code in this repository is MIT-licensed. **The data keeps the license of its original publisher.**
+Pending: license, download date and attribution for each dataset (source URLs are in `docs/sources/MX_profeco.md`). The code in this repository is MIT-licensed. **The data keeps the license of its original publisher.**
 
 ---
 

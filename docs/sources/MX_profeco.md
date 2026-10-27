@@ -123,8 +123,8 @@ Only the end of each file was inspected, and the checks for criteria 1 and 4 wer
 - [x] Results of block 2.17 (length of `procedimiento`, meaning of `En Proceso`).
 - [x] Files moved to `data/raw/` (the base file is loaded from there by `step_1.sql`).
 - [x] Excel captures of the file ends saved in `docs/img/` (`mx_profeco_tail_*.png`).
-- [ ] Capture checks B and C (`giro`) of block 2.8 as `step_2_8_b.png` and `step_2_8_c_giro.png`.
-- [ ] Re-run block 2.2 with the exact comparison (expected 36,034) and replace `step_2_2.png`.
+- [x] Captures of checks B and C (`giro`) of block 2.8 (`step_2_8_b.png`, `step_2_8_c_giro.png`).
+- [ ] Re-run block 2.2 with the exact comparison (expected 36,034) and replace `step_2_2.png` (the current capture only shows 36,032 distinct IDs, with the case-insensitive collation).
 - [ ] SHA-256 of the base file, and the license of the dataset.
 - [x] BIT portal: download pages and the list of tables (criterion 4).
 - [ ] BIT: confirm that Grupo Salinas is Total Play (`EMPRESA` column), and read the terms of use.
@@ -170,7 +170,7 @@ Values of the columns that describe how the complaint was filed and handled (run
 
 **`sector`:** a single value, `Telecomunicaciones`, in all 36,034 rows. It carries no information and is not used in the model. Evidence: ![sector](../img/step_2_8_c_sector.png)
 
-**`medio_ingreso`** (channel). Evidence: ![medio_ingreso](../img/step_2_8_c_medio.png)
+**`medio_ingreso`** (channel). Evidence: ![medio_ingreso](../img/step_2_8_c_medio_ingreso.png)
 
 | Value | As loaded | After correcting the swap (2.15) |
 |---|---|---|
@@ -186,7 +186,7 @@ Values of the columns that describe how the complaint was filed and handled (run
 
 The 352 "Servicio" and 78 "Bien" are exactly the 430 swapped rows of block 2.15, so the swap explains every non-channel value of this column. `-` and `sin dato` (35 rows) become `NULL`.
 
-**`procedimiento`.** Evidence: ![procedimiento](../img/step_2_8_c_proc.png)
+**`procedimiento`.** Evidence: ![procedimiento](../img/step_2_8_c_procedimiento.png)
 
 | Value | Rows |
 |---|---|
@@ -202,9 +202,9 @@ The 352 "Servicio" and 78 "Bien" are exactly the 430 swapped rows of block 2.15,
 | Resol al Recurso de Rev. Admin | 1 |
 | Cumpliment Sentencia o Resoluc | 1 |
 
-- **Labels cut at 30 characters.** Three values have exactly 30 characters ("Conciliación Medios Electrónic", "Resol al Recurso de Rev. Admin" and "Cumpliment Sentencia o Resoluc"), which would be very unlikely by chance. But the full label "Conciliación Medios Electrónicos" (32 characters, 4,827 rows) exists in the same column, so the text was cut in part of the records only. Both spellings end in similar outcomes (Conciliada 54% and 52%), so they are the same procedure (14,922 + 4,827 = 19,749 rows). Handling: a mapping of labels in the clean layer. Evidence: ![Block 2.17, part 1](../img/step_2_17_a.png)
+- **Labels cut at 30 characters.** Three values have exactly 30 characters ("Conciliación Medios Electrónic", "Resol al Recurso de Rev. Admin" and "Cumpliment Sentencia o Resoluc"), which would be very unlikely by chance. But the full label "Conciliación Medios Electrónicos" (32 characters, 4,827 rows) exists in the same column, so the text was cut in part of the records only. Both spellings end in similar outcomes (Conciliada 54% and 52%), so they are the same procedure (14,922 + 4,827 = 19,749 rows). Handling: a mapping of labels in the clean layer. Evidence: ![Block 2.17, part 1](../img/step_2_17_1.png)
 - **Placeholders:** `-` (47) and `0` (5) become `NULL`.
-- **Procedure groups** (block 2.17). Evidence: ![Block 2.17, part 2](../img/step_2_17_b.png)
+- **Procedure groups** (block 2.17). Evidence: ![Block 2.17, part 2](../img/step_2_17_2.png)
 
 | Group | Values | Rows | Outcomes |
 |---|---|---|---|
@@ -215,7 +215,7 @@ The 352 "Servicio" and 78 "Bien" are exactly the 430 swapped rows of block 2.15,
 
   The clean layer keeps a `procedure_group`. Proposal: the duration KPIs use the Conciliation group, and Queja is checked separately because 25 of the 48 cancelled cases belong to it. The other legal procedures are almost always "No Conciliada" and are not a conciliation.
 
-**`tipo_conciliacion`.** Evidence: ![tipo_conciliacion](../img/step_2_8_c_tipoconc.png)
+**`tipo_conciliacion`.** Evidence: ![tipo_conciliacion](../img/step_2_8_c_tipo_conciliacion.png)
 
 | Value | Rows |
 |---|---|
@@ -226,7 +226,7 @@ The 352 "Servicio" and 78 "Bien" are exactly the 430 swapped rows of block 2.15,
 | Cancelada | 31 |
 
 - The labels are abbreviated by the publisher. The groups (electronic means, in person, telephone) agree in size with `medio_ingreso` and `procedimiento`, but they do not match exactly.
-- **`En Proceso` (1,492 rows) is not the state of the case.** These rows have final outcomes (Conciliada 829, Desistimiento 486, No Conciliada 170, Cancelada 5 and Improcedente 2), and only 9 have no close date. It looks like the label of cases without an assigned conciliation channel (interpretation, not confirmed by the publisher). This supports the assumption that the file holds closed cases only. Evidence: [block 2.17](../img/step_2_17_a.png).
+- **`En Proceso` (1,492 rows) is not the state of the case.** These rows have final outcomes (Conciliada 829, Desistimiento 486, No Conciliada 170, Cancelada 5 and Improcedente 2), and only 9 have no close date. It looks like the label of cases without an assigned conciliation channel (interpretation, not confirmed by the publisher). This supports the assumption that the file holds closed cases only. Evidence: [block 2.17](../img/step_2_17_1.png).
 - `Cancelada` appears in 31 rows here and in 48 rows of `estado_procesal`: the other 17 have another conciliation type (En Proceso 5, Medios Elec. 10, Person 2). The 22 non-cancelled rows without close date are 18 `Person` and 4 `En Proceso`.
 
 ## Results of the feasibility gate
@@ -276,7 +276,7 @@ Accesses by group in December 2024 (pivot table in Excel, filters `ANIO` = 2024 
 
 - Rates per 100,000 accesses can only be computed for 2022 to 2024. Complaints of 2025 and 2026 are used for volume and duration.
 - The BIT operator is a group. The provider mapping table (`data/reference/`) must map each PROFECO brand to a group.
-- Evidence files: `bit_zip_baf.png`, `bit_zip_tf.png`, `bit_market_share_baf.png`, `bit_market_share_telfija.png`, `bit_acc_baf_pivot_entidad.png`, `bit_acc_baf_pivot_grupo.png`, `BIT_servicio_fijo_de_acceso_a_internet.png`, `BIT_servicio_fijo_de_telefonia.png` (in `docs/img/`).
+- Evidence files in `docs/img/`: `bit_portal_baf.png`, `bit_portal_tf.png`, `bit_zip_baf.png`, `bit_zip_tf.png`, `bit_market_share_baf.png`, `bit_market_share_telfija.png`, `bit_acc_baf_filter_anio.png`, `bit_acc_baf_filter_mes.png`, `bit_acc_baf_pivot_entidad.png`, `bit_acc_baf_pivot_grupo.png`.
 
 Complaints by filing year (the two spellings of Total Play are added):
 
