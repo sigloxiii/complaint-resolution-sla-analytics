@@ -136,7 +136,7 @@ The names differ from the published data dictionary (which uses upper case, for 
 - **Values in the wrong column:** in 430 rows (all filed in 2022) the values of `clase` and `medio_ingreso` are swapped. They are corrected in the clean layer and flagged.
 - **Case-insensitive IDs:** two `expediente` values differ only in case and belong to different providers. They are not duplicates, and the data are not deduplicated by ID.
 - **Closed cases only:** the file has no open cases, so the most recent months are incomplete (right-censoring) and resolution times can look shorter than reality.
-- **Abbreviated and cut labels:** `procedimiento` and `tipo_conciliacion` hold abbreviated text, and some `procedimiento` values seem cut at 30 characters (for example "Conciliación Medios Electrónic"), so the same label appears spelled two ways. They are mapped in the clean layer.
+- **Abbreviated and cut labels:** `procedimiento` and `tipo_conciliacion` hold abbreviated text, and some `procedimiento` values are cut at 30 characters (for example "Conciliación Medios Electrónic"), so the same label appears spelled two ways. They are mapped in the clean layer.
 - **Metric meaning:** days to close measures the duration of the PROFECO conciliation procedure, not the provider's repair time. Only complaints that reach PROFECO are recorded (self-selection bias).
 
 ### Feasibility gate

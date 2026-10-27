@@ -6,7 +6,7 @@ Record of each script execution on the local instance (SQL Server 2025 Express, 
 |---|---|---|---|
 | 0 | `sql/common/step_0.sql` | 2026-10-25 (confirm) | Done |
 | 1 | `sql/mx_profeco/step_1.sql` | 2026-10-26 | Done (second attempt, see incident) |
-| 2 | `sql/mx_profeco/step_2.sql` | 2026-10-26 | In progress (block 2.17 pending) |
+| 2 | `sql/mx_profeco/step_2.sql` | 2026-10-26 | In progress (exact-ID check of block 2.2 pending) |
 
 ## Step 0: database and schemas
 
@@ -63,7 +63,7 @@ Status: in progress. The script is read-only (SELECT). Results are summarized in
 | 2.8 | Type of service (checks A to I) | Done. See *Type of service* in `docs/sources/MX_profeco.md` and decision D7. The columns `sector`, `procedimiento`, `medio_ingreso` and `tipo_conciliacion` were also reviewed |
 | 2.9 to 2.14 | Provider names, gate criteria 1 and 3, batch closings, amounts, cancelled cases | Done. Gate criteria 1 to 3 passed |
 | 2.15, 2.16 | Values in the wrong column (`clase`), explanation of missing close dates, amounts | Done. `clase` and `medio_ingreso` are swapped in 430 rows (all from 2022) |
-| 2.17 | Length of `procedimiento` values; `tipo_conciliacion` and `procedimiento` against `estado_procesal` | Pending |
+| 2.17 | Length of `procedimiento` values; `tipo_conciliacion` and `procedimiento` against `estado_procesal` | Done. `procedimiento` labels are cut at 30 characters in part of the rows; `En Proceso` is not an open case |
 
 Changes made to `step_2.sql` while running it:
 
@@ -72,3 +72,4 @@ Changes made to `step_2.sql` while running it:
 - **Result.** `giro` is not the service of the complaint, and `problema_especial` names a service in 27.2% of the rows, with uneven coverage (decision D7).
 - **`clase` and `tipo_producto`** do not hold the telecom service. D7 moved from Provisional to Accepted.
 - **New block 2.15** added to the script: `clase` holds 430 values that belong to `medio_ingreso` (Internet, Personal, Escrito, Correo Electrónico). The block checks if the two columns were swapped and in which years it happens.
+- **New block 2.17** added to the script. It showed that `En Proceso` rows have final outcomes (so it is not an open case) and that 62 rows of `procedimiento` are legal procedures that are not a conciliation.

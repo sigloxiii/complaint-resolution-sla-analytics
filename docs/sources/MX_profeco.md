@@ -120,7 +120,7 @@ Only the end of each file was inspected, and the checks for criteria 1 and 4 wer
 - [x] Results of `step_2.sql` in SSMS (blocks 2.1 to 2.14), received on 2026-10-26.
 - [x] Results of the repeated-ID queries (block 2.2), block 2.15 and block 2.16.
 - [x] Results of block 2.8 for `sector`, `procedimiento`, `medio_ingreso` and `tipo_conciliacion`.
-- [ ] Results of block 2.17 (length of `procedimiento`, meaning of `En Proceso`).
+- [x] Results of block 2.17 (length of `procedimiento`, meaning of `En Proceso`).
 - [x] Files moved to `data/raw/` (the base file is loaded from there by `step_1.sql`).
 - [x] Excel captures of the file ends saved in `docs/img/` (`mx_profeco_tail_*.png`).
 - [ ] Capture checks B and C (`giro`) of block 2.8 as `step_2_8_b.png` and `step_2_8_c_giro.png`.
@@ -201,9 +201,18 @@ The 352 "Servicio" and 78 "Bien" are exactly the 430 swapped rows of block 2.15,
 | Resol al Recurso de Rev. Admin | 1 |
 | Cumpliment Sentencia o Resoluc | 1 |
 
-- **Labels cut at 30 characters.** "Conciliación Medios Electrónic", "Resol al Recurso de Rev. Admin" and "Cumpliment Sentencia o Resoluc" have exactly 30 characters, while "Conciliación Medios Electrónicos" (32) also exists in the same column, so the width of the SSMS grid is not the cause. The same procedure is written two ways (14,922 + 4,827 = 19,749 rows). To be confirmed with the length query of block 2.17. Handling: a mapping of labels in the clean layer.
+- **Labels cut at 30 characters.** Three values have exactly 30 characters ("Conciliación Medios Electrónic", "Resol al Recurso de Rev. Admin" and "Cumpliment Sentencia o Resoluc"), which would be very unlikely by chance. But the full label "Conciliación Medios Electrónicos" (32 characters, 4,827 rows) exists in the same column, so the text was cut in part of the records only. Both spellings end in similar outcomes (Conciliada 54% and 52%), so they are the same procedure (14,922 + 4,827 = 19,749 rows). Handling: a mapping of labels in the clean layer. Evidence: ![Block 2.17, part 1](../img/step_2_17_a.png)
 - **Placeholders:** `-` (47) and `0` (5) become `NULL`.
-- **Procedures that are not a conciliation:** "Queja" (1,126), "Proc. Infracciones a la Ley" (56), "Sol. de Dictamen" (4) and two administrative procedures (2). They may have different durations, so the clean layer keeps a `procedure_group` and the duration KPIs are checked with and without them.
+- **Procedure groups** (block 2.17). Evidence: ![Block 2.17, part 2](../img/step_2_17_b.png)
+
+| Group | Values | Rows | Outcomes |
+|---|---|---|---|
+| Conciliation | Medios Electrónic(os), Personal, Telefónica | 34,794 | Conciliada, Desistimiento, No Conciliada and Improcedente |
+| Queja | Queja | 1,126 | Conciliada 602, Desistimiento 374, No Conciliada 122, Cancelada 25, Improcedente 2 and one `Turnada a Concil Person P/seg` |
+| Other legal procedures | Proc. Infracciones a la Ley (56), Sol. de Dictamen (4), Resol al Recurso de Rev. Admin (1), Cumpliment Sentencia o Resoluc (1) | 62 | 61 No Conciliada and 1 Conciliada |
+| Not identified | `-` (47), `0` (5) | 52 | 21 Cancelada, 21 Conciliada, 7 Desistimiento and 3 No Conciliada |
+
+  The clean layer keeps a `procedure_group`. Proposal: the duration KPIs use the Conciliation group, and Queja is checked separately because 25 of the 48 cancelled cases belong to it. The other legal procedures are almost always "No Conciliada" and are not a conciliation.
 
 **`tipo_conciliacion`.** Evidence: ![tipo_conciliacion](../img/step_2_8_c_tipoconc.png)
 
@@ -216,8 +225,8 @@ The 352 "Servicio" and 78 "Bien" are exactly the 430 swapped rows of block 2.15,
 | Cancelada | 31 |
 
 - The labels are abbreviated by the publisher. The groups (electronic means, in person, telephone) agree in size with `medio_ingreso` and `procedimiento`, but they do not match exactly.
-- **`En Proceso` (1,492 rows) is not understood.** The file is supposed to hold closed cases, and only 66 rows have no close date. Block 2.17 crosses this column with `estado_procesal` and with the missing close date. Until then, the statement that the file has closed cases only is an assumption.
-- `Cancelada` appears in 31 rows here and in 48 rows of `estado_procesal`, so the two columns do not mean the same.
+- **`En Proceso` (1,492 rows) is not the state of the case.** These rows have final outcomes (Conciliada 829, Desistimiento 486, No Conciliada 170, Cancelada 5 and Improcedente 2), and only 9 have no close date. It looks like the label of cases without an assigned conciliation channel (interpretation, not confirmed by the publisher). This supports the assumption that the file holds closed cases only. Evidence: [block 2.17](../img/step_2_17_a.png).
+- `Cancelada` appears in 31 rows here and in 48 rows of `estado_procesal`: the other 17 have another conciliation type (En Proceso 5, Medios Elec. 10, Person 2). The 22 non-cancelled rows without close date are 18 `Person` and 4 `En Proceso`.
 
 ## Results of the feasibility gate
 
