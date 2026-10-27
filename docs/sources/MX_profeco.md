@@ -118,8 +118,8 @@ Only the end of each file was inspected, and the checks for criteria 1 and 4 wer
 - [ ] Page of the data dictionary.
 - [ ] Left-hand columns of the Power Query errors view (cancelled cases with provider "-").
 - [x] Results of `step_2.sql` in SSMS (blocks 2.1 to 2.14), received on 2026-10-26.
-- [ ] Results of the repeated-ID queries (block 2.2), block 2.15 and block 2.16.
-- [ ] Results of block 2.8 for `sector`, `procedimiento`, `medio_ingreso`, `tipo_conciliacion` and `estado_procesal`.
+- [x] Results of the repeated-ID queries (block 2.2), block 2.15 and block 2.16.
+- [ ] Results of block 2.8 for `sector`, `procedimiento`, `medio_ingreso` and `tipo_conciliacion`.
 - [ ] Files moved to `data/raw/`.
 - [ ] Save the five Excel captures of the file ends as `mx_profeco_tail_2022_2025.png`, `mx_profeco_tail_ene_2026.png`, `mx_profeco_tail_may_2026.png`, `mx_profeco_tail_junio_2026.png` and `mx_profeco_tail_jul2026.png` in `docs/img/`.
 - [ ] BIT portal: download page and the list of subscriber tables.
@@ -130,15 +130,15 @@ Visual inspection suggested that no column tells which service a complaint is ab
 
 | Check | Question | Result | Evidence |
 |---|---|---|---|
-| A | Brands with more than one `giro` | 58 brands. Telcel 5, Megacable 7, Izzi 5, Telmex 6 | ![Check A, part 1](../img/mx_profeco_step_2_8_check_a_01.png) ![Check A, part 2](../img/mx_profeco_step_2_8_check_a_02.png) |
-| B | Do reason columns mention a service? | `motivo_reclamacion` 0, `tipo_reclamacion` 0, `problema_especial` 5,443 | ![Check B](../img/mx_profeco_step_2_8_check_b.png) |
-| C | Values of `giro` | Mobile telephony 18,466; pay TV 10,211; local telephony 2,354; cable TV 2,051; internet giros 944 | ![Check C](../img/mx_profeco_step_2_8_check_c_giro.png) |
-| D | `giro` of the main brands | Izzi: 3,530 of 3,693 as pay TV and 80 as internet | ![Check D](../img/mx_profeco_step_2_8_check_d.png) |
-| E | `giro` inside one legal name | It changes (Radiomóvil Dipsa 5 values, Total Play 6) | ![Check E](../img/mx_profeco_step_2_8_check_e.png) |
-| F | Values of `problema_especial` | 26,116 "No Problema Especial" (72.5%); 9,806 with a service name (27.2%) | ![Check F](../img/mx_profeco_step_2_8_check_f.png) |
-| G | `giro` of Total Play by year | Both labels, "Televisión por Cable" and "Empresa de Tv de Paga", appear every year | ![Check G](../img/mx_profeco_step_2_8_check_g.png) |
-| H | Brand vs `problema_especial` | Coherent with the business of each brand (see below) | ![Check H](../img/mx_profeco_step_2_8_check_h.png) |
-| I | Coverage of `problema_especial` by year | 2022 20%, 2023 21%, 2024 28%, 2025 38%, 2026 43% | ![Check I](../img/mx_profeco_step_2_8_check_i.png) |
+| A | Brands with more than one `giro` | 58 brands. Telcel 5, Megacable 7, Izzi 5, Telmex 6 | ![Check A, part 1](../img/step_2_8_a1.png) ![Check A, part 2](../img/step_2_8_a2.png) |
+| B | Do reason columns mention a service? | `motivo_reclamacion` 0, `tipo_reclamacion` 0, `problema_especial` 5,443 | ![Check B](../img/step_2_8_b.png) |
+| C | Values of `giro` | Mobile telephony 18,466; pay TV 10,211; local telephony 2,354; cable TV 2,051; internet giros 944 | ![Check C](../img/step_2_8_c_giro.png) |
+| D | `giro` of the main brands | Izzi: 3,530 of 3,693 as pay TV and 80 as internet | ![Check D](../img/step_2_8_d.png) |
+| E | `giro` inside one legal name | It changes (Radiomóvil Dipsa 5 values, Total Play 6) | ![Check E](../img/step_2_8_e.png) |
+| F | Values of `problema_especial` | 26,116 "No Problema Especial" (72.5%); 9,806 with a service name (27.2%) | ![Check F](../img/step_2_8_f.png) |
+| G | `giro` of Total Play by year | Both labels, "Televisión por Cable" and "Empresa de Tv de Paga", appear every year | ![Check G](../img/step_2_8_g.png) |
+| H | Brand vs `problema_especial` | Coherent with the business of each brand (see below) | ![Check H](../img/step_2_8_h.png) |
+| I | Coverage of `problema_especial` by year | 2022 20%, 2023 21%, 2024 28%, 2025 38%, 2026 43% | ![Check I](../img/step_2_8_i.png) |
 
 Reading of check H (values with a service name, as a share of each brand's complaints):
 
@@ -156,8 +156,8 @@ Conclusions (decision D7):
 - `giro` is not the service of the complaint.
 - `problema_especial` is coherent with the brand but incomplete and unstable over time, so it is used only as a labeled partial hint.
 - Other values of `problema_especial` are free text (for example `Cablemas ¿ Cablevision Monterr`, 26 rows), and `-` or `sin dato` (47 rows). The character `¿` may come from the source file; to be checked in the original CSV.
-- `clase` and `tipo_producto` do not give the telecom service either. `clase` is Servicio (31,340) or Bien (4,226), and `tipo_producto` is Servicio Normal (30,314), Producto Nuevo (4,718), Servicio Adicional o Conexo (690), Producto Usado (245) and Producto Reconstruido (23). They separate services from goods (for example phones). Evidence: ![clase and tipo_producto](../img/mx_profeco_step_2_8_check_c_clase_tipo.png)
-- **Anomaly:** `clase` also holds Internet (187), Personal (181), Escrito (61) and Correo Electrónico (1). These are values of `medio_ingreso`, not of `clase`. See block 2.15 of `step_2.sql`.
+- `clase` and `tipo_producto` do not give the telecom service either. `clase` is Servicio (31,340) or Bien (4,226), and `tipo_producto` is Servicio Normal (30,314), Producto Nuevo (4,718), Servicio Adicional o Conexo (690), Producto Usado (245) and Producto Reconstruido (23). They separate services from goods (for example phones). Evidence: ![clase and tipo_producto](../img/step_2_8_c_clase.png)
+- **Anomaly:** `clase` also holds Internet (187), Personal (181), Escrito (61) and Correo Electrónico (1). These are values of `medio_ingreso`, not of `clase`: in those rows the two columns are swapped (see the section below). The counts above are shown as loaded; after the correction, Servicio is 31,692 and Bien is 4,304.
 
 ## Results of the feasibility gate
 
@@ -179,7 +179,7 @@ Complaints by filing year (the two spellings of Total Play are added):
 | Telmex | 863 | 527 | 413 | 390 | 68 |
 | Total Play | 931 | 656 | 579 | 1,017 | 164 |
 
-Evidence: ![Block 2.10](../img/mx_profeco_step_2_2_10.png) ![Block 2.11](../img/mx_profeco_step_2_2_11.png) ![Block 2.6](../img/mx_profeco_step_2_2_6.png)
+Evidence: ![Block 2.10](../img/step_2_10.png) ![Block 2.11](../img/step_2_11.png) ![Block 2.6](../img/step_2_6.png)
 
 Notes on the gate:
 
@@ -191,14 +191,60 @@ Notes on the gate:
 
 | Block | Finding | Handling in the clean layer |
 |---|---|---|
-| 2.1, 2.2 | 36,034 rows, but 36,032 distinct `expediente`: 2 IDs are repeated | Under review (repeated-ID queries) |
+| 2.1, 2.2 | 36,034 rows, but 36,032 distinct `expediente`. The 2 "repeated" IDs differ only in case and belong to different providers (see below) | No deduplication. Surrogate key; `expediente` normalized to upper case |
 | 2.3 to 2.5 | All dates are `yyyy-mm-dd`. Filing 2022-01-03 to 2026-05-27; closing 2022-01-06 to 2026-05-29 | `TRY_CONVERT` to `date` |
-| 2.6 | 66 rows without close date (44 are cancelled; the other 22 are to be explained) | Flag, no days to close |
+| 2.6 | 66 rows without close date: 44 Cancelada, 15 No Conciliada, 5 Desistimiento and 2 Conciliada | Flag, no days to close. The 2 Conciliada rows are inconsistent |
 | 2.7 | 3 rows with close date before filing date | Flag, excluded from duration KPIs |
 | 2.9 | 477 distinct legal names and 196 brands. Power Query showed 486 legal names because it compares text with case and accents, while the database collation does not | Provider mapping table by brand |
 | 2.9 | Brand variants: Totalplay and Total Play; Virgin (24) and Virgin Mobile (47); Telmov and Telmovil. Generic values: Otros (126), Otro (64), P. Moral (119), P. Física (117) | Mapping table; generic values become "not identified" |
 | 2.12 | The close date 2026-03-10 has 147 cases; the next highest is 94 (2024-01-23) | Flag days with unusual volume of closings (possible batch closings) |
-| 2.13 | `monto_reclamado`: `-` (32), `sin dato` (4) and `Oo` (1, probably a typing error). `monto_recuperado`: `-` in 1,479 rows. `costo_bien_servicio`: `-` (33) and `sin dato` (1) | Placeholders become `NULL`. The `-` of `monto_recuperado` may mean "nothing recovered" and not "unknown"; to be checked against `estado_procesal` |
+| 2.13 | `monto_reclamado`: `-` (32), `sin dato` (4) and `Oo` (1, probably a typing error). `monto_recuperado`: `-` in 1,479 rows. `costo_bien_servicio`: `-` (33) and `sin dato` (1) | Placeholders become `NULL`. The `-` of `monto_recuperado` is spread over all outcomes at a low rate, so it means "unknown" and not "nothing recovered" |
 | 2.14 | 48 cancelled cases (21 in 2022, 17 in 2023, 10 in 2024). Provider `-` in 10 rows. Brand Otros in 126 rows | Flag cancelled cases and exclude them from KPIs |
 
-Evidence images for blocks 2.3 to 2.5, 2.7, 2.9, 2.12, 2.13 and 2.14 are saved as `mx_profeco_step_2_2_<block>.png` in `docs/img/`.
+Evidence images for blocks 2.3 to 2.5, 2.7, 2.9, 2.12, 2.13 and 2.14 are saved as `step_2_<block>.png` in `docs/img/` (block 2.9 is `step_2_9.png`).
+
+### Repeated IDs, swapped columns and missing close dates (blocks 2.2, 2.15 and 2.16)
+
+![Block 2.2, repeated IDs](../img/step_2_2.png)
+
+**Repeated `expediente` (2.2).** The 2 repeated IDs are not duplicate rows:
+
+- `PFC.YUC.B.3/001619-2024` appears for Movistar (Pegaso Pcs) and for Samsung, with the same dates and outcome. `PFC.YUC.B.3/001976-2024` appears for Telcel (Radiomóvil Dipsa) and for Honor, also with the same dates.
+- In each pair, one row is written with a lowercase `y` (`PFC.yUC...`). The database collation ignores case, so both spellings compare as equal and `COUNT(DISTINCT)` gives 36,032. Compared by exact text, there are 36,034 different IDs.
+- It is probably one case filed against two providers (the carrier and the phone maker), with one row per provider. This is not confirmed.
+- **Handling:** no deduplication. The fact table gets its own surrogate key, `expediente` is converted to upper case, and a flag marks the IDs shared by more than one provider. The grain is one row per case and provider.
+
+![Block 2.15, swapped columns](../img/step_2_15.png)
+
+**Swapped columns (2.15).** The 430 rows with a channel in `clase` have Servicio or Bien in `medio_ingreso`, so the two columns are swapped:
+
+| `clase` as loaded | `medio_ingreso` as loaded | Rows |
+|---|---|---|
+| Internet | Servicio | 177 |
+| Personal | Servicio | 130 |
+| Personal | Bien | 51 |
+| Escrito | Servicio | 44 |
+| Escrito | Bien | 17 |
+| Internet | Bien | 10 |
+| Correo Electrónico | Servicio | 1 |
+
+- All 430 rows were filed in 2022 (the sample rows are from 2022-12-01). The neighbor columns are coherent: `procedimiento` agrees with the channel, and `modalidad_compra` and `modalidad_pago` have valid values.
+- **Handling:** in the clean layer, when `clase` is Internet, Personal, Escrito or Correo Electrónico, the two values are swapped and the row is flagged. After the correction, no row may have a channel in `clase`.
+
+![Block 2.16](../img/step_2_16.png)
+
+**Missing close date (2.16).** The 66 rows are 44 Cancelada, 15 No Conciliada, 5 Desistimiento and 2 Conciliada. A conciliated case should have a close date, so those 2 rows are inconsistent.
+
+**Close date before filing date (2.16).** All 3 rows are from 2022:
+
+| `expediente` | Filing | Close | Outcome | Brand |
+|---|---|---|---|---|
+| PFC.HGO.B.3/001586-2022 | 2022-10-26 | 2022-05-04 | No Conciliada | Totalplay |
+| PFC.YUC.B.3/001891-2022 | 2022-11-07 | 2022-05-04 | No Conciliada | Izzi |
+| PFC.ZAC.B.3/000867-2022 | 2022-12-19 | 2022-05-02 | Desistimiento | Megacable |
+
+It is not possible to tell which of the two dates is wrong. The rows are flagged and excluded from duration KPIs.
+
+**`monto_recuperado` equal to `-` (2.16).** The dash is spread over every outcome at a low rate: Conciliada 668 of 20,501 (3.3%), Desistimiento 590 of 11,781 (5.0%), No Conciliada 202 of 3,148 (6.4%), Improcedente 9 of 555 and Cancelada 10 of 48. If it meant "nothing recovered", it would concentrate in the cases without conciliation. It is a missing value and becomes `NULL`.
+
+**Values of `estado_procesal` (2.16).** Conciliada 20,501 (56.9%), Desistimiento 11,781 (32.7%), No Conciliada 3,148 (8.7%), Improcedente 555 (1.5%), Cancelada 48 and one row with the value `Turnada a Concil Person P/seg`. That text is a value of `tipo_conciliacion`, so it is one more value in the wrong column. The row is flagged.

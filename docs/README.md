@@ -25,7 +25,7 @@ Index of the project documentation. Everything here is written in English.
 
 ## Conventions
 
-- **Images:** stored in `img/`, with no subfolders. The file name is `<topic>_<name>.png`, in lowercase with underscores. Examples: `mx_profeco_fuentes_01.png`, `step_0_results.png`, `powerbi_overview.png`.
+- **Images:** stored in `img/`, with no subfolders. The file name is `<topic>_<name>.png`, in lowercase with underscores. Evidence of a script run is named `step_<N>_<block>.png`, where the block is the number after the dot (block 2.10 of `step_2.sql` is `step_2_10.png`), and checks inside a block add a letter (`step_2_8_a1.png`). Examples: `mx_profeco_fuentes_01.png`, `step_0_results.png`, `step_2_10.png`, `powerbi_overview.png`.
 - **Image links:** relative to the file that uses them (`../img/...` from `sources/`, `img/...` from this folder).
 - **Screenshots:** crop them so that they do not show the machine name, the user name or unrelated content.
 - **Decision log:** every entry has an ID, a date and a status (Open, Provisional, Accepted or Rejected). When a decision changes, the entry is updated and the reason is kept.

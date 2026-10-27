@@ -57,6 +57,12 @@ GROUP BY expediente
 HAVING COUNT(*) > 1
 ORDER BY n_times DESC;
 
+-- The database ignores upper and lower case (collation Modern_Spanish_CI_AI),
+-- so "YUC" and "yUC" count as the same ID. This version compares the exact
+-- characters (COLLATE Latin1_General_BIN2). Expected result: 36034.
+SELECT COUNT(DISTINCT expediente COLLATE Latin1_General_BIN2) AS n_distinct_exact
+FROM stg.profeco_raw;
+
 -- Look at the repeated rows completely: are they identical copies or
 -- different cases that share an ID?
 SELECT *

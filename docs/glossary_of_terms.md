@@ -59,6 +59,8 @@ Technical terms used in this project, in the order in which they became relevant
 
 - **What it is:** the rules for comparing and sorting text in a database.
 - **In this project:** `Modern_Spanish_CI_AI` means Spanish rules, case-insensitive and accent-insensitive: `Mexico` equals `México` and `TELCEL` equals `Telcel`, while `ñ` stays different from `n`.
+- **Effect on counts and keys:** `COUNT(DISTINCT ...)` and `GROUP BY` treat values that differ only in case or accents as the same value. Here, `PFC.YUC.B.3/001619-2024` and `PFC.yUC.B.3/001619-2024` looked like one ID, so `COUNT(DISTINCT expediente)` gave 36,032 instead of 36,034. It also explains why Power Query (which compares exact text) found 486 legal names and SQL found 477.
+- **Exact comparison:** adding `COLLATE Latin1_General_BIN2` to a column compares the exact characters, for example `COUNT(DISTINCT expediente COLLATE Latin1_General_BIN2)`.
 
 ### Schema
 
