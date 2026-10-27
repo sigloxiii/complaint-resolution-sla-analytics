@@ -127,7 +127,7 @@ Only the end of each file was inspected, and the checks for criteria 1 and 4 wer
 - [ ] Re-run block 2.2 with the exact comparison (expected 36,034) and replace `step_2_2.png` (the current capture only shows 36,032 distinct IDs, with the case-insensitive collation).
 - [ ] SHA-256 of the base file, and the license of the dataset.
 - [x] BIT portal: download pages and the list of tables (criterion 4).
-- [ ] BIT: confirm that Grupo Salinas is Total Play (`EMPRESA` column), and read the terms of use.
+- [ ] BIT: confirm that the `TotalPlay` rows of `EMPRESA` have `GRUPO` = `GRUPO SALINAS`, and read the terms of use.
 
 ## Type of service (`step_2.sql`, block 2.8)
 
@@ -242,7 +242,7 @@ Run on 2026-10-26 on `stg.profeco_raw` (36,034 rows).
 
 ### Criterion 4: BIT check (2026-10-27)
 
-Source: BIT (Banco de Información de Telecomunicaciones, CRT), module *Descarga de datos*. The files `Servicio Fijo de Acceso a Internet TODO_BAF.zip` (10 CSV) and `Servicio Fijo de Telefonia TODO_TF.zip` (13 CSV) were downloaded to `data/BIT/` (not versioned). The definitions come from the IFT *Manual de definiciones de los indicadores estadísticos de telecomunicaciones* (2018).
+Source: BIT (Banco de Información de Telecomunicaciones, CRT), module *Descarga de datos*. The files `Servicio Fijo de Acceso a Internet TODO_BAF.zip` (10 CSV) and `Servicio Fijo de Telefonia TODO_TF.zip` (13 CSV) were downloaded to `data/BIT/` (not versioned). The definitions come from the IFT *Manual de definiciones de los indicadores estadísticos de telecomunicaciones* (April 2018): https://www.ift.org.mx/sites/default/files/contenidogeneral/estadisticas/manualdefinicionesmarzo2018.pdf. It describes each indicator, its BIT table key and its breakdowns. It is dated 2018, so the table structure was also checked directly on the downloaded files.
 
 **Table checked: `TD_ACC_BAF_ITE_VA`** (fixed broadband accesses, manual indicator 4.3.1).
 
@@ -252,7 +252,7 @@ Source: BIT (Banco de Información de Telecomunicaciones, CRT), module *Descarga
 | Columns | `FOLIO`, `K_ENTIDAD`, `K_MUNICIPIO`, `K_ACCESO_INTERNET`, `TECNO_ACCESO_INTERNET`, `FECHA`, `ANIO`, `MES`, `K_EMPRESA`, `EMPRESA`, `CONCESIONARIO`, `A_TOTAL_E`, `K_GRUPO`, `GRUPO`, `ENTIDAD`, `MUNICIPIO` |
 | Grain | One row per folio, state, municipality, technology, company and month. `A_TOTAL_E` is the number of accesses |
 | Period | January 2013 to December 2024 (minimum year 2013, last year 2024 with 12 months) |
-| Operator | Company and group. The four groups of interest appear as `AMÉRICA MÓVIL` (Telmex), `GRUPO TELEVISA` (Izzi), `MEGACABLE-MCM` and `GRUPO SALINAS` (Total Play, to be confirmed with `EMPRESA`) |
+| Operator | Company (`EMPRESA`) and group (`GRUPO`). The four groups of interest appear in `GRUPO` as `AMÉRICA MÓVIL` (Telmex), `GRUPO TELEVISA` (Izzi), `MEGACABLE-MCM` and `GRUPO SALINAS`. In `EMPRESA` there is no entry called Grupo Salinas, but there is one called `TotalPlay`, so Total Play is identified by `EMPRESA` (to confirm that its rows have `GRUPO` = `GRUPO SALINAS`) |
 | Date format | `FECHA` is text like `15Jan2021`; use `ANIO` and `MES` |
 | Encoding | Not UTF-8 (a CSV viewer rejected it); the load script must set the code page |
 

@@ -106,6 +106,7 @@ Desk research on the candidate sources is complete, and the five PROFECO files w
 |---|---|---|
 | PROFECO telecommunications complaints (datos.gob.mx) | One row per complaint case | **Primary fact source** |
 | BIT, Telecommunications Information Bank (CRT) | Quarterly, by operator / state / technology | Denominators (subscribers) |
+| IFT *Manual de definiciones de los indicadores estadísticos de telecomunicaciones* (2018) | PDF | Definitions of the BIT indicators and table keys ([link](https://www.ift.org.mx/sites/default/files/contenidogeneral/estadisticas/manualdefinicionesmarzo2018.pdf)) |
 | "Soy Usuario" quarterly reports (IFT/CRT) | Aggregated, PDF | Cross-validation of results |
 | Fixed-service quality guidelines (IFT, 2020) | Regulatory thresholds | Context for benchmarks |
 | Ookla Open Data / M-Lab (optional) | Tiles / test records | Optional technical layer |

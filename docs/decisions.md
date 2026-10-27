@@ -38,7 +38,7 @@ Each entry records the context, the options considered, the decision and the rea
   - BIT gives accesses by operator **group** (not by brand) and ends in December 2024. Rates per 100,000 accesses are possible for 2022 to 2024 only; 2025 and 2026 are used for volume and duration.
   - Accesses are not subscriptions. A subscription can have several accesses.
   - Some groups have very few accesses in some states (for example Grupo Salinas has 137 in Tlaxcala), so a minimum denominator is needed before showing a state rate.
-- **Still open:** confirm that Grupo Salinas is Total Play (check the `EMPRESA` column when loading the BIT), the BIT terms of use, the dataset license, the overlap audit of the five cuts (D4) and the exact-ID check of block 2.2.
+- **Still open:** confirm that the `TotalPlay` rows of the `EMPRESA` column belong to `GRUPO SALINAS`, the BIT terms of use, the dataset license, the overlap audit of the five cuts (D4) and the exact-ID check of block 2.2.
 - **Revisit if:** the BIT mapping does not match the PROFECO brands, or the license does not allow publishing derived data.
 
 ---
