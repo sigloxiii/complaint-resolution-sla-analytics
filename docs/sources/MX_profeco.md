@@ -124,7 +124,7 @@ Only the end of each file was inspected, and the checks for criteria 1 and 4 wer
 - [x] Files moved to `data/raw/` (the base file is loaded from there by `step_1.sql`).
 - [x] Excel captures of the file ends saved in `docs/img/` (`mx_profeco_tail_*.png`).
 - [x] Captures of checks B and C (`giro`) of block 2.8 (`step_2_8_b.png`, `step_2_8_c_giro.png`).
-- [ ] Re-run block 2.2 with the exact comparison (expected 36,034) and replace `step_2_2.png` (the current capture only shows 36,032 distinct IDs, with the case-insensitive collation).
+- [x] Block 2.2 re-run with the exact comparison: 36,034 distinct IDs (`step_2_2.png`).
 - [ ] SHA-256 of the base file, and the license of the dataset.
 - [x] BIT portal: download pages and the list of tables (criterion 4).
 - [ ] BIT: confirm that the `TotalPlay` rows of `EMPRESA` have `GRUPO` = `GRUPO SALINAS`, and read the terms of use.

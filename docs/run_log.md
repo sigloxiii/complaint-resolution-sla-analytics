@@ -6,7 +6,7 @@ Record of each script execution on the local instance (SQL Server 2025 Express, 
 |---|---|---|---|
 | 0 | `sql/common/step_0.sql` | 2026-10-25 | Done |
 | 1 | `sql/mx_profeco/step_1.sql` | 2026-10-26 | Done (second attempt, see incident) |
-| 2 | `sql/mx_profeco/step_2.sql` | 2026-10-26 | Done (gate passed on 2026-10-27; exact-ID check of block 2.2 pending) |
+| 2 | `sql/mx_profeco/step_2.sql` | 2026-10-26 | Done (gate passed on 2026-10-27) |
 
 ## Step 0: database and schemas
 
@@ -55,7 +55,7 @@ What the evidence shows:
 
 ## Step 2: feasibility gate profiling
 
-Status: in progress. The script is read-only (SELECT). Results are summarized in `docs/sources/MX_profeco.md`; this section records what was run and what changed in the script.
+Status: done. The script is read-only (SELECT). Results are summarized in `docs/sources/MX_profeco.md`; this section records what was run and what changed in the script.
 
 | Block | Topic | Status |
 |---|---|---|
