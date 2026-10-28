@@ -31,6 +31,7 @@ sql/
 | 0 | `common/step_0.sql` | Create the database, its collation and the three schemas |
 | 1 | `mx_profeco/step_1.sql` | Load the raw PROFECO complaints CSV into `stg.profeco_raw` |
 | 2 | `mx_profeco/step_2.sql` | Feasibility gate profiling (read-only queries) |
+| 3 | `mx_profeco/step_3.sql` | Clean layer: `clean.profeco_complaint`, brand and state lookup tables, quality flags |
 
 ## Requirements
 

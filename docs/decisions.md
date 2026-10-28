@@ -152,7 +152,7 @@ Each entry records the context, the options considered, the decision and the rea
   - B. Use `problema_especial` as the service type for all KPIs. Rejected: 73% of rows have no value, the coverage depends on the brand and the year, and complaints with a value are probably not a random sample.
   - C. Analyze at provider level and use `problema_especial` only as a labeled partial hint.
 - **Decision:** C.
-  1. The main analysis is by provider (normalized brand). Fixed vs mobile comes from a brand mapping table (`data/reference/`), not from each complaint.
+  1. The main analysis is by provider (normalized brand). Fixed vs mobile comes from a brand mapping table (`clean.brand_map`, filled in `step_3.sql`), not from each complaint.
   2. The clean layer creates `service_hint` from `problema_especial` (mobile telephony, mobile data, internet, television, fixed telephony, not specified). The values "No Problema Especial", `-`, `sin dato` and free text become "not specified".
   3. `service_hint` is shown only in a data-quality view, always with its coverage. It is not used in the headline KPIs or in trends over time.
   4. `giro` is kept as a descriptive attribute.
