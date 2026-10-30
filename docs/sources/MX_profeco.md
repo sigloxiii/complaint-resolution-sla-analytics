@@ -128,7 +128,7 @@ Only the end of each file was inspected, and the checks for criteria 1 and 4 wer
 - [ ] SHA-256 of the base file, and the license of the dataset.
 - [x] Meaning of the column `odeco`: name of the PROFECO office (check 3.3.16).
 - [ ] Meaning of the amount columns (decision D9), from the PROFECO data dictionary page.
-- [ ] Capture again `step_3_check_06p1.png` and `step_3_check_06p2.png` after revision 2, and run check 3.3.17.
+- [x] `step_3_check_06p1.png` and `step_3_check_06p2.png` captured again after revision 2, and check 3.3.17 run (`step_3_check_17.png`).
 - [x] BIT portal: download pages and the list of tables (criterion 4).
 - [ ] BIT: confirm that the `TotalPlay` rows of `EMPRESA` have `GRUPO` = `GRUPO SALINAS`, and read the terms of use.
 
@@ -371,8 +371,8 @@ It is not possible to tell which of the two dates is wrong. The rows are flagged
 | 3.3.3 Flags | missing close 66; close before filing 3; cancelled 48; swapped columns 430; shared case ID 4; outcome anomaly 1; unusual close day 147; valid duration 35,961 | ![3.3.3](../img/step_3_check_03.png) |
 | 3.3.4 Swapped columns | `item_class`: Servicio 31,692, Bien 4,304, NULL 38. `channel`: Internet 19,772, Personal 13,059, Escrito 3,048, Correo Electrónico 114, Teléfono 6, NULL 35 | ![3.3.4](../img/step_3_check_04.png) |
 | 3.3.5 Procedure groups | Conciliation 34,794; Queja 1,126; Other legal procedure 62; Not identified 52 | ![3.3.5](../img/step_3_check_05.png) |
-| 3.3.6 Brands (fixed) | Megacable 3,967; Izzi 3,693; Total Play 3,347 (two spellings merged); Telmex 2,261 | ![3.3.6 a](../img/step_3_check_06p1.png) |
-| 3.3.6 Brands (not classified) | Biggest: Sky, Dish, Samsung, Not identified 426, Bait 392, Motorola 273 | ![3.3.6 b](../img/step_3_check_06p2.png) |
+| 3.3.6 Brands (fixed), after revision 2 | Megacable 3,967; Izzi 3,693; Total Play 3,347 (two spellings merged); Telmex 2,261; Axtel 45; Gigacable 21; Telecable 10; Starlink 9; Newww 5 (13,358 in total). Gigacable and Telecable have no BIT group yet | ![3.3.6 a](../img/step_3_check_06p1.png) |
+| 3.3.6 Brands (not classified), after revision 2 | Biggest: Not identified 426, Telmov 89, Macropay 87, Mobo 58, Ctdi 31, Macrocel 31. The rest has 20 cases or fewer each (for example Uninet 8, Hughes México 4, Alestra 3) | ![3.3.6 b](../img/step_3_check_06p2.png) |
 | 3.3.7 States | Every state text matched. 31 states have complaints; Tlaxcala (29) has none | ![3.3.7](../img/step_3_check_07.png) |
 | 3.3.8 Service hint | Not specified 26,228 (73%); Mobile telephony 4,039; Internet / data use 3,251; Internet 1,826; Television 362; Telephony 328. The five hints add up to 9,806 (27.2%), the same count as `step_2.sql` | ![3.3.8](../img/step_3_check_08.png) |
 | 3.3.9 Amounts | NULL: claimed 37, cost 34, recovered 1,479. Claimed 0.00 to 551,335.06; recovered 0.00 to 556,800.00 | ![3.3.9](../img/step_3_check_09.png) |
@@ -383,14 +383,15 @@ It is not possible to tell which of the two dates is wrong. The rows are flagged
 | 3.3.14 Office H and channel (revision 2) | Office `H`: 19,798 cases, all in Ciudad de México (Internet 19,607, Personal 140, Escrito 40, no channel 10, Correo Electrónico 1). The other 165 Internet cases are spread over 31 states | ![3.3.14](../img/step_3_check_14.png) |
 | 3.3.15 Brands by category (revision 2) | Mobile 18,231 (5 brands); Fixed 13,358 (9 brands); Pay TV (satellite) 2,101 (2); Device maker 1,243 (11); Not classified 1,101 (163 brands). Total 36,034 | ![3.3.15](../img/step_3_check_15.png) |
 | 3.3.16 `odeco` (revision 2) | `odeco` is the name of the PROFECO office (zone), one per office code (for example "Zona Metropolitana de Mérida" is YUC). Office `H` has two names: "Dir. Gral. Cons. Telecom" (16,016) and "Dgpct" (3,782) | ![3.3.16](../img/step_3_check_16.png) |
+| 3.3.17 State vs office (revision 2) | Of the 16,236 cases not handled by office `H`, 16,221 (99.9%) have the main state of their office and 15 have another state | ![3.3.17](../img/step_3_check_17.png) |
 
 The days with a valid duration add up to 35,961 (34,773 + 1,098 + 59 + 31), the same value as the flag.
 
-Image names follow the pattern `step_3_check_<NN>.png`; a check with two result tables has two files, `p1` and `p2` (check 6). The images `step_3_check_06p1.png` and `step_3_check_06p2.png` are from run 1 (before revision 2) and have to be captured again; the brand table of revision 2 is in check 15.
+Image names follow the pattern `step_3_check_<NN>.png`; a check with two result tables has two files, `p1` and `p2` (check 6). Checks 6, 14, 15, 16 and 17 were run or captured again after revision 2 (the brand table by category is in check 15).
 
 ### What the results say
 
-- **Brand mapping.** The "Not identified" brand is 426 rows, exactly Otros 126 + Otro 64 + P. Moral 119 + P. Física 117. The biggest brands left without classification are not fixed or mobile carriers of the analysis: satellite TV (Sky, Dish), phone makers (Samsung, Motorola, Apple, Xiaomi, Zte, Huawei, Honor, Oppo) and some small operators (Bait, Axtel, Gigacable, Telecable, Starlink, Uninet). They are kept as "Not classified" for now (see pending items).
+- **Brand mapping.** The "Not identified" brand is 426 rows, exactly Otros 126 + Otro 64 + P. Moral 119 + P. Física 117. The biggest brands left without classification are not fixed or mobile carriers of the analysis: satellite TV (Sky, Dish), phone makers (Samsung, Motorola, Apple, Xiaomi, Zte, Huawei, Honor, Oppo) and some small operators (Bait, Axtel, Gigacable, Telecable, Starlink, Uninet). After revision 2 the brands of these groups have their own category (check 15), and 1,101 rows (3%) stay "Not classified", in 163 brands with few cases each (check 6, part 2). Some of them are small operators (Uninet, Hughes México, Alestra) and are not worth a manual mapping for now.
 - **Service hint.** The free text of `problema_especial` that is not a service (for example "Cablemas ¿ Cablevision Monterr" 26 rows, "Izzi Telecom" 24) stays "Not specified". The `¿` is in the data as loaded; it still has to be compared with the original CSV.
 - **State is the PROFECO office, not where the consumer lives (decision D8).** The Internet channel (55% of the cases) is 99.3% Ciudad de México, and the case IDs show why: office `H` handles about 19,700 cases centrally, all in Ciudad de México, while the other offices match one state each (for example YUC is Yucatán; ODF, CDF, VIL and PDF are Ciudad de México; NEZ, TLA and MEX are Estado de México; TOR is Coahuila; CDJ is Chihuahua). Tlaxcala has no complaints because there is no office with that code. So 62% of Ciudad de México is a result of central handling.
 - **Amounts are not reliable for KPIs (decision D9).** `monto_reclamado` is 0 in 78% of the rows, and the recovered amount is larger than the claimed one in 24%. In the 10 biggest differences the claimed amount is 0.00, and one row looks like a typing error (claimed 18,480.00, recovered 184,480.00). The amounts stay as loaded and are used only as descriptive information.

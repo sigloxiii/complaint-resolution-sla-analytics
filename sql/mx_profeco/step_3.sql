@@ -593,3 +593,19 @@ SELECT TOP 30 office_name, office_code, state_name, COUNT(*) AS n
 FROM clean.profeco_complaint
 GROUP BY office_name, office_code, state_name
 ORDER BY n DESC;
+
+-- 3.3.17 (added 2026-10-29) Is the state always the state of the office?
+-- For each office code (not office H), take the state that appears most often
+-- and count the rows that have another state. A value near 0 means that the
+-- state is the state of the office; a high value means that for some cases
+-- it is the state of the consumer (decision D8).
+WITH office_state AS (
+    SELECT office_code, state_name, COUNT(*) AS n,
+           ROW_NUMBER() OVER (PARTITION BY office_code ORDER BY COUNT(*) DESC) AS rank_in_office
+    FROM clean.profeco_complaint
+    WHERE flag_central_office = 0
+    GROUP BY office_code, state_name
+)
+SELECT SUM(CASE WHEN rank_in_office = 1 THEN n ELSE 0 END) AS rows_in_main_state,
+       SUM(CASE WHEN rank_in_office > 1 THEN n ELSE 0 END) AS rows_in_other_state
+FROM office_state;

@@ -186,8 +186,8 @@ Each entry records the context, the options considered, the decision and the rea
   3. The headline provider comparison uses all the cases and the national BIT accesses of each operator group.
   4. Rates per 100,000 accesses by state are exploratory: the consumers of one state can be served by another office.
 - **Reasons:** a result that depends on how PROFECO routes cases must not be read as a result about the consumers of each state.
-- **Later evidence (2026-10-29):** `odeco` is the name of the office (check 3.3.16), and office `H` has 19,798 cases (99.2% of the Internet channel, check 3.3.14), with two names: "Dir. Gral. Cons. Telecom" and "Dgpct". Check 3.3.17 will measure how often the state of a case differs from the main state of its office.
-- **Revisit if:** check 3.3.17 shows that `estado` is often the residence of the consumer, or the PROFECO data dictionary says so.
+- **Later evidence (2026-10-29):** `odeco` is the name of the office (check 3.3.16), and office `H` has 19,798 cases (99.2% of the Internet channel, check 3.3.14), with two names: "Dir. Gral. Cons. Telecom" and "Dgpct". Check 3.3.17: of the 16,236 cases not handled by `H`, 16,221 (99.9%) have the main state of their office and only 15 have another one. So `estado` is the state of the office for practically every case.
+- **Revisit if:** the PROFECO data dictionary says that `estado` is the residence of the consumer.
 
 ---
 
