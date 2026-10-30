@@ -72,6 +72,21 @@ Technical terms used in this project, in the order in which they became relevant
 - **What it is:** a function that tries to convert a value to another type (for example text to number) and returns `NULL` instead of an error when it cannot.
 - **Where it is used:** to find and later clean values such as `-` in amount columns.
 
+### Empty text and dates
+
+- **What it is:** an empty text (`''`) is not `NULL`. Converted to a date, an empty text becomes `1900-01-01` instead of an error or `NULL`.
+- **Where it matters here:** the 66 cases without close date. `step_3.sql` writes `NULLIF(text, '')` before `TRY_CONVERT`, so an empty value becomes `NULL` and never a false date.
+
+### CTE (common table expression)
+
+- **What it is:** a named step written with `WITH name AS (SELECT ...)`. The next query reads it as if it were a table.
+- **Where it is used:** `step_3.sql` builds the clean table in steps (`c`, `s`, `r`): trim and convert, fix and join, derive groups. Each step is short and can be checked alone.
+
+### Surrogate key
+
+- **What it is:** a number the project assigns to each row, with no meaning of its own, used as its identifier.
+- **Where it is used:** `complaint_key` in `clean.profeco_complaint`. `case_id` cannot be the key because 2 case IDs appear for two providers each (4 rows).
+
 ## Data architecture
 
 ### Staging (`stg`) and raw layer

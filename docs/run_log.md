@@ -7,7 +7,7 @@ Record of each script execution on the local instance (SQL Server 2025 Express, 
 | 0 | `sql/common/step_0.sql` | 2026-10-25 | Done |
 | 1 | `sql/mx_profeco/step_1.sql` | 2026-10-26 | Done (second attempt, see incident) |
 | 2 | `sql/mx_profeco/step_2.sql` | 2026-10-26 | Done (gate passed on 2026-10-27) |
-| 3 | `sql/mx_profeco/step_3.sql` | 2026-10-27 | Run 1 done (checks 1 to 13); revision 2 to run |
+| 3 | `sql/mx_profeco/step_3.sql` | 2026-10-27 | Run 1 done (checks 1 to 13); revision 2 done (checks 14 to 16) |
 
 ## Step 0: database and schemas
 
@@ -90,12 +90,18 @@ Two checks were added after the first run and gave findings that changed the des
 - **Check 3.3.12 (state):** the state is the PROFECO office that handled the case, and the Internet channel is handled by one central office in Ciudad de México (decision D8).
 - **Check 3.3.13 (amounts):** the claimed amount is 0 in 78% of the rows and the recovered amount exceeds the claimed one in 24% (decision D9).
 
-### Revision 2 (to run)
+### Revision 2 (run on 2026-10-29)
 
 Changes in `step_3.sql`, from the results of checks 3.3.6, 3.3.12 and 3.3.13:
 
 - `clean.brand_map` has new categories: Fixed (Axtel, Gigacable, Telecable, Newww, Starlink), Mobile (Bait), Pay TV (satellite) (Sky, Dish) and Device maker (Samsung, Motorola, Apple, Xiaomi, ZTE, Huawei, Honor, Oppo, Alcatel, LG, Hisense).
 - `clean.profeco_complaint` has three new columns: `office_code` (from the case ID), `office_name` (`odeco`) and `flag_central_office` (office `H`).
-- New checks: 3.3.14 (office H and channel), 3.3.15 (brands by category) and 3.3.16 (meaning of `odeco`).
+- New checks: 3.3.14 (office H and channel), 3.3.15 (brands by category), 3.3.16 (meaning of `odeco`) and, added afterwards, 3.3.17 (is the state always the state of the office?), which is still to be run.
 
-After running it, repeat and save these captures: `step_3_check_06p1.png` and `step_3_check_06p2.png` (brands), and new `step_3_check_14.png`, `step_3_check_15.png` and `step_3_check_16.png`. The other checks do not change; compare them with the values already recorded.
+Results (images `step_3_check_14.png` to `step_3_check_16.png`, details in `docs/sources/MX_profeco.md`):
+
+- Office `H` has 19,798 cases and 99.2% of the Internet channel (19,607 of 19,772); the other 165 Internet cases are spread over 31 states.
+- Brands by category add up to 36,034: Mobile 18,231 (5 brands), Fixed 13,358 (9 brands), Pay TV (satellite) 2,101, Device maker 1,243 (11 brands) and Not classified 1,101 (163 brands).
+- `odeco` is the name of the office (zone). Office `H` has two names, "Dir. Gral. Cons. Telecom" (16,016) and "Dgpct" (3,782).
+
+Still to do: capture again `step_3_check_06p1.png` and `step_3_check_06p2.png` (the files in the repository are from run 1, before the new brand categories), and run check 3.3.17.

@@ -181,12 +181,13 @@ Each entry records the context, the options considered, the decision and the rea
   - B. Use `estado` only for cases not handled centrally, label it "PROFECO office", and compare providers at national level.
   - C. Drop every state analysis. Rejected: 45% of the cases (16,262) come from regional offices and keep a useful regional view.
 - **Decision:** B.
-  1. The clean layer keeps `office_code` (from the case ID), `office_name` (`odeco`, meaning to be confirmed) and `flag_central_office` (office `H`).
+  1. The clean layer keeps `office_code` (from the case ID), `office_name` (`odeco`, the name of the office) and `flag_central_office` (office `H`).
   2. Analyses by region use only `flag_central_office = 0`, are titled "by PROFECO office", and show how many cases they leave out.
   3. The headline provider comparison uses all the cases and the national BIT accesses of each operator group.
   4. Rates per 100,000 accesses by state are exploratory: the consumers of one state can be served by another office.
 - **Reasons:** a result that depends on how PROFECO routes cases must not be read as a result about the consumers of each state.
-- **Revisit if:** the PROFECO data dictionary or check 3.3.16 (`odeco`) shows that `estado` is the residence of the consumer, or if office `H` turns out to be something else.
+- **Later evidence (2026-10-29):** `odeco` is the name of the office (check 3.3.16), and office `H` has 19,798 cases (99.2% of the Internet channel, check 3.3.14), with two names: "Dir. Gral. Cons. Telecom" and "Dgpct". Check 3.3.17 will measure how often the state of a case differs from the main state of its office.
+- **Revisit if:** check 3.3.17 shows that `estado` is often the residence of the consumer, or the PROFECO data dictionary says so.
 
 ---
 

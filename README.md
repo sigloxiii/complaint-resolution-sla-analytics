@@ -86,7 +86,7 @@ The pipeline stages above describe how the data flow. The project phases below d
 |---|---|---|
 | 0 | Repository scaffold and feasibility gate on the Mexican dataset | Done (4 of 4 criteria passed, decision D1) |
 | 1 | Create database and schemas; load raw data into `stg` | Done (`step_0` and `step_1`) |
-| 2 | Clean and normalize: types, durations, provider mapping | Done (`step_3`; open points: brand classification, meaning of the state) |
+| 2 | Clean and normalize: types, durations, provider mapping | Done (`step_3`, revision 2; the state is the PROFECO office, see D8) |
 | 3 | Load denominators (subscribers) and build dimensions | Pending |
 | 4 | Build the `mart` star schema; SQL validation queries | Pending |
 | 5 | Power BI model, DAX measures and report | Pending |
@@ -124,7 +124,7 @@ Desk research on the candidate sources is complete, and the five PROFECO files w
 | Amounts | `costo_bien_servicio`, `monto_reclamado`, `monto_recuperado` |
 | Purchase | `clase`, `tipo_producto`, `modalidad_compra`, `modalidad_pago` |
 
-The names differ from the published data dictionary (which uses upper case, for example `ID_EXP`). Profiling showed that `giro` classifies the provider (not the service of the complaint) and that `clase` separates services from goods. The meaning of `odeco` is still to be confirmed.
+The names differ from the published data dictionary (which uses upper case, for example `ID_EXP`). Profiling showed that `giro` classifies the provider (not the service of the complaint) and that `clase` separates services from goods. `odeco` is the name of the PROFECO office that handled the case (check 3.3.16 of `step_3.sql`).
 
 ### Known caveats
 

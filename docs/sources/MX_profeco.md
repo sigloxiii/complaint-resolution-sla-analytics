@@ -126,7 +126,9 @@ Only the end of each file was inspected, and the checks for criteria 1 and 4 wer
 - [x] Captures of checks B and C (`giro`) of block 2.8 (`step_2_8_b.png`, `step_2_8_c_giro.png`).
 - [x] Block 2.2 re-run with the exact comparison: 36,034 distinct IDs (`step_2_2.png`).
 - [ ] SHA-256 of the base file, and the license of the dataset.
-- [ ] Meaning of the column `odeco` (check 3.3.16 of `step_3.sql`, revision 2) and of the amount columns, from the PROFECO data dictionary page.
+- [x] Meaning of the column `odeco`: name of the PROFECO office (check 3.3.16).
+- [ ] Meaning of the amount columns (decision D9), from the PROFECO data dictionary page.
+- [ ] Capture again `step_3_check_06p1.png` and `step_3_check_06p2.png` after revision 2, and run check 3.3.17.
 - [x] BIT portal: download pages and the list of tables (criterion 4).
 - [ ] BIT: confirm that the `TotalPlay` rows of `EMPRESA` have `GRUPO` = `GRUPO SALINAS`, and read the terms of use.
 
@@ -378,10 +380,13 @@ It is not possible to tell which of the two dates is wrong. The rows are flagged
 | 3.3.11 Identical rows | 0 groups of fully identical rows in `stg` | ![3.3.11](../img/step_3_check_11.png) |
 | 3.3.12 State and office | Internet channel: 19,626 of 19,772 cases (99.3%) are in Ciudad de México. By brand: Megacable 69.7%, Total Play 68.3%, Izzi 59.1%, Telmex 21.2%. The office in the case ID matches the state one to one (YUC 940, JAL 670, GTO 663, ...), except office `H` (about 19,700 cases), which is Ciudad de México | ![3.3.12](../img/step_3_check_12.png) |
 | 3.3.13 Amounts | `monto_reclamado` = 0 in 28,142 rows (78%); `monto_recuperado` = 0 in 22,187 (62%); recovered larger than claimed in 8,739 rows (24%). The biggest differences have claimed 0.00 and a large recovered amount | ![3.3.13](../img/step_3_check_13.png) |
+| 3.3.14 Office H and channel (revision 2) | Office `H`: 19,798 cases, all in Ciudad de México (Internet 19,607, Personal 140, Escrito 40, no channel 10, Correo Electrónico 1). The other 165 Internet cases are spread over 31 states | ![3.3.14](../img/step_3_check_14.png) |
+| 3.3.15 Brands by category (revision 2) | Mobile 18,231 (5 brands); Fixed 13,358 (9 brands); Pay TV (satellite) 2,101 (2); Device maker 1,243 (11); Not classified 1,101 (163 brands). Total 36,034 | ![3.3.15](../img/step_3_check_15.png) |
+| 3.3.16 `odeco` (revision 2) | `odeco` is the name of the PROFECO office (zone), one per office code (for example "Zona Metropolitana de Mérida" is YUC). Office `H` has two names: "Dir. Gral. Cons. Telecom" (16,016) and "Dgpct" (3,782) | ![3.3.16](../img/step_3_check_16.png) |
 
 The days with a valid duration add up to 35,961 (34,773 + 1,098 + 59 + 31), the same value as the flag.
 
-Image names follow the pattern `step_3_check_<NN>.png`; a check with two result tables has two files, `p1` and `p2` (check 6).
+Image names follow the pattern `step_3_check_<NN>.png`; a check with two result tables has two files, `p1` and `p2` (check 6). The images `step_3_check_06p1.png` and `step_3_check_06p2.png` are from run 1 (before revision 2) and have to be captured again; the brand table of revision 2 is in check 15.
 
 ### What the results say
 
