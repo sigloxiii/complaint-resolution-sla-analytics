@@ -7,6 +7,8 @@
 -- Needs     : step_1.sql executed (stg.profeco_raw loaded).
 -- How to run: open in SSMS and press F5. It runs in about a second.
 -- WARNING   : running it again deletes and rebuilds the three clean tables.
+-- Revision 2 (2026-10-27): more brand categories, office_code and
+--             flag_central_office (results of checks 3.3.6 and 3.3.12).
 --
 -- Every rule below comes from evidence recorded in
 -- docs/sources/MX_profeco.md (blocks of step_2.sql) and decision D7.
@@ -37,7 +39,11 @@ GO
 
 -- Brand table. operator_group uses the name of the group in the BIT
 -- (column GRUPO of TD_ACC_BAF_ITE_VA), so subscribers can be joined later.
--- network_type: Fixed = fixed-network operator, Mobile = mobile operator.
+-- network_type: Fixed = fixed-network operator (including satellite internet),
+--   Mobile = mobile operator, Pay TV (satellite) = Sky and Dish (they sell no
+--   internet, so they have NO operator_group: joining them to the BIT accesses
+--   would count the same customers twice), Device maker = phone and device
+--   brands (the complaint is about a device, not about a network).
 -- Brands that are not listed here keep their own name and get
 -- network_type = 'Not classified' (check 3.3.6 lists the biggest ones).
 DROP TABLE IF EXISTS clean.brand_map;
@@ -45,7 +51,7 @@ CREATE TABLE clean.brand_map (
     brand_raw       NVARCHAR(200) NOT NULL PRIMARY KEY, -- as written in the file
     brand           NVARCHAR(100) NOT NULL,             -- normalized brand
     operator_group  NVARCHAR(100) NULL,                 -- group name in the BIT
-    network_type    NVARCHAR(20)  NOT NULL
+    network_type    NVARCHAR(30)  NOT NULL
 );
 
 INSERT INTO clean.brand_map (brand_raw, brand, operator_group, network_type)
@@ -64,6 +70,28 @@ VALUES
     -- Same brand written two ways (step_2.sql, block 2.9).
     (N'Virgin',       N'Virgin Mobile', NULL,              N'Mobile'),
     (N'Virgin Mobile',N'Virgin Mobile', NULL,              N'Mobile'),
+    -- Smaller operators seen in check 3.3.6. operator_group is filled only when
+    -- the exact name was seen in the BIT (column GRUPO); otherwise it stays NULL.
+    (N'Axtel',        N'Axtel',         N'AXTEL',          N'Fixed'),
+    (N'Gigacable',    N'Gigacable',     NULL,              N'Fixed'),
+    (N'Telecable',    N'Telecable',     NULL,              N'Fixed'),
+    (N'Newww',        N'Newww',         N'NEWWW',          N'Fixed'),
+    (N'Starlink',     N'Starlink',      N'SPACEX-STARLINK',N'Fixed'),
+    (N'Bait',         N'Bait',          NULL,              N'Mobile'),
+    (N'Sky',          N'Sky',           NULL,              N'Pay TV (satellite)'),
+    (N'Dish',         N'Dish',          NULL,              N'Pay TV (satellite)'),
+    -- Device makers (the biggest ones in check 3.3.6).
+    (N'Samsung',      N'Samsung',       NULL,              N'Device maker'),
+    (N'Motorola',     N'Motorola',      NULL,              N'Device maker'),
+    (N'Apple',        N'Apple',         NULL,              N'Device maker'),
+    (N'Xiaomi',       N'Xiaomi',        NULL,              N'Device maker'),
+    (N'Zte',          N'ZTE',           NULL,              N'Device maker'),
+    (N'Huawei',       N'Huawei',        NULL,              N'Device maker'),
+    (N'Honor',        N'Honor',         NULL,              N'Device maker'),
+    (N'Oppo',         N'Oppo',          NULL,              N'Device maker'),
+    (N'Alcatel',      N'Alcatel',       NULL,              N'Device maker'),
+    (N'Lg',           N'LG',            NULL,              N'Device maker'),
+    (N'Hisense',      N'Hisense',       NULL,              N'Device maker'),
     (N'Telmov',       N'Telmov',        NULL,              N'Not classified'),
     (N'Telmovil',     N'Telmov',        NULL,              N'Not classified'),
     -- Generic values: they do not name a provider.
@@ -150,7 +178,7 @@ CREATE TABLE clean.profeco_complaint (
     brand_raw               NVARCHAR(400) NULL,   -- nombre_comercial as loaded (trimmed)
     brand                   NVARCHAR(200) NOT NULL,
     operator_group          NVARCHAR(100) NULL,   -- group name in the BIT (only for mapped brands)
-    network_type            NVARCHAR(20)  NOT NULL, -- Fixed / Mobile / Not classified
+    network_type            NVARCHAR(30)  NOT NULL, -- Fixed / Mobile / Pay TV (satellite) / Device maker / Not classified
     giro                    NVARCHAR(400) NULL,   -- descriptive only (it classifies the provider, see D7)
     state_raw               NVARCHAR(100) NULL,
     state_code              CHAR(2)       NULL,   -- INEGI code, NULL if the text is not in clean.state_map
@@ -174,7 +202,10 @@ CREATE TABLE clean.profeco_complaint (
     flag_shared_case_id     BIT NOT NULL,         -- the same case_id appears for more than one provider
     flag_outcome_anomaly    BIT NOT NULL,         -- outcome text is not a valid outcome
     flag_unusual_close_day  BIT NOT NULL,         -- more than 100 cases closed on that date (possible batch closing)
-    flag_valid_duration     BIT NOT NULL          -- days_to_close can be used in duration KPIs
+    flag_valid_duration     BIT NOT NULL,         -- days_to_close can be used in duration KPIs
+    office_code             NVARCHAR(10)  NULL,   -- PROFECO office, taken from case_id (PFC.YUC.B.3/... gives YUC)
+    office_name             NVARCHAR(200) NULL,   -- odeco as loaded (meaning to be confirmed, check 3.3.16)
+    flag_central_office     BIT NOT NULL          -- office H: cases handled centrally (the state is NOT where the consumer lives)
 );
 GO
 
@@ -197,6 +228,7 @@ WITH c AS (
         NULLIF(NULLIF(NULLIF(LTRIM(RTRIM(proveedor)), ''), '-'), 'sin dato')          AS proveedor,
         NULLIF(NULLIF(NULLIF(LTRIM(RTRIM(nombre_comercial)), ''), '-'), 'sin dato')   AS nombre_comercial,
         NULLIF(NULLIF(NULLIF(LTRIM(RTRIM(giro)), ''), '-'), 'sin dato')               AS giro,
+        NULLIF(NULLIF(NULLIF(LTRIM(RTRIM(odeco)), ''), '-'), 'sin dato')              AS odeco,
         NULLIF(NULLIF(NULLIF(LTRIM(RTRIM(estado)), ''), '-'), 'sin dato')             AS estado,
         NULLIF(NULLIF(NULLIF(LTRIM(RTRIM(tipo_reclamacion)), ''), '-'), 'sin dato')   AS tipo_reclamacion,
         NULLIF(NULLIF(NULLIF(LTRIM(RTRIM(motivo_reclamacion)), ''), '-'), 'sin dato') AS motivo_reclamacion,
@@ -261,6 +293,10 @@ r AS (
              WHEN s.problema_especial = 'Telefonia'             THEN 'Telephony'
              ELSE 'Not specified' END                            AS service_hint,
         -- Windows over other rows: they cannot be written in the same step.
+        -- The case ID starts with the office: PFC.YUC.B.3/001976-2024 -> YUC.
+        -- Check 3.3.12 showed that estado is the state of that office.
+        CASE WHEN s.case_id LIKE 'PFC.%.%'
+             THEN SUBSTRING(s.case_id, 5, CHARINDEX('.', s.case_id, 5) - 5) END AS office_code,
         COUNT(*) OVER (PARTITION BY s.case_id)                   AS n_rows_same_case,
         COUNT(s.close_date) OVER (PARTITION BY s.close_date)     AS n_closed_same_day
     FROM s
@@ -275,7 +311,8 @@ INSERT INTO clean.profeco_complaint (
     special_problem, service_hint,
     flag_missing_close, flag_close_before_filing, flag_cancelled,
     flag_swapped_columns, flag_shared_case_id, flag_outcome_anomaly,
-    flag_unusual_close_day, flag_valid_duration
+    flag_unusual_close_day, flag_valid_duration,
+    office_code, office_name, flag_central_office
 )
 SELECT
     -- Own ID. The order is fixed so the same data always gets the same numbers.
@@ -325,14 +362,19 @@ SELECT
     CASE WHEN r.filing_date IS NOT NULL AND r.close_date IS NOT NULL
               AND r.close_date >= r.filing_date
               AND COALESCE(r.outcome, '') <> 'Cancelada'
-         THEN 1 ELSE 0 END                                               AS flag_valid_duration
+         THEN 1 ELSE 0 END                                               AS flag_valid_duration,
+    r.office_code,
+    r.odeco,
+    -- Office H handles about 19,700 cases, all in Ciudad de México (check 3.3.12).
+    CASE WHEN r.office_code = 'H' THEN 1 ELSE 0 END                      AS flag_central_office
 FROM r;
 GO
 
 -- ---------------------------------------------------------------------
 -- 3.3 CHECKS (read-only). Each one says what result is expected.
--- Save the results as docs/img/step_3_<number>.png (for example
--- step_3_3.png) and compare them with the expected values.
+-- Save the results as docs/img/step_3_check_<NN>.png (for example
+-- step_3_check_03.png; two result tables of one check: ..._06p1 and ..._06p2)
+-- and compare them with the expected values.
 -- ---------------------------------------------------------------------
 
 -- 3.3.1 Same number of rows as the raw table. Expected: 36034 and 36034.
@@ -386,7 +428,8 @@ GROUP BY procedure_group
 ORDER BY n DESC;
 
 -- 3.3.6 Brands. Part 1 expected: Telmex 2261, Izzi 3693, Megacable 3967,
--- Total Play 3347 (the two spellings merged).
+-- Total Play 3347 (the two spellings merged). After revision 2 the list also
+-- shows Axtel 45, Gigacable 21, Telecable 10, Starlink 9 and Newww 5.
 SELECT brand, operator_group, COUNT(*) AS n
 FROM clean.profeco_complaint
 WHERE network_type = 'Fixed'
@@ -470,3 +513,83 @@ FROM (
              modalidad_pago, problema_especial
     HAVING COUNT(*) > 1
 ) AS d;
+
+-- ---------------------------------------------------------------------
+-- 3.3.12 and 3.3.13 were added after the first run (they only READ data,
+-- so the tables do not need to be rebuilt). Save them as step_3_check_12.png
+-- and step_3_check_13.png.
+-- ---------------------------------------------------------------------
+
+-- 3.3.12 Where do the complaints come from? Ciudad de México has 22,477 of
+-- 36,034 complaints (62%) and Tlaxcala has none (3.3.7). The state may be the
+-- PROFECO office that handled the case and not the home of the consumer.
+-- Part 1: share of Ciudad de México by channel and by brand. If the share
+-- is high in every group, the state does not describe where the consumer lives.
+SELECT 'channel' AS grouped_by, channel AS value,
+       COUNT(*) AS n,
+       SUM(CASE WHEN state_code = '09' THEN 1 ELSE 0 END) AS n_cdmx,
+       CAST(100.0 * SUM(CASE WHEN state_code = '09' THEN 1 ELSE 0 END) / COUNT(*) AS decimal(5, 1)) AS pct_cdmx
+FROM clean.profeco_complaint
+GROUP BY channel
+UNION ALL
+SELECT 'brand', brand,
+       COUNT(*),
+       SUM(CASE WHEN state_code = '09' THEN 1 ELSE 0 END),
+       CAST(100.0 * SUM(CASE WHEN state_code = '09' THEN 1 ELSE 0 END) / COUNT(*) AS decimal(5, 1))
+FROM clean.profeco_complaint
+WHERE network_type = 'Fixed'
+GROUP BY brand
+ORDER BY grouped_by, n DESC;
+
+-- Part 2: the case ID starts with the PROFECO office (for example
+-- PFC.YUC.B.3/001976-2024 is the office YUC). Compare that office with the
+-- state of the complaint. If they agree, the state is the office.
+SELECT TOP 25
+       SUBSTRING(case_id, 5, CHARINDEX('.', case_id, 5) - 5) AS office_in_case_id,
+       state_name,
+       COUNT(*) AS n
+FROM clean.profeco_complaint
+WHERE case_id LIKE 'PFC.%.%'
+GROUP BY SUBSTRING(case_id, 5, CHARINDEX('.', case_id, 5) - 5), state_name
+ORDER BY n DESC;
+
+-- 3.3.13 Amounts that look wrong. The largest recovered amount (556,800.00)
+-- is larger than the largest claimed amount (551,335.06).
+-- Part 1: how many rows recover more than they claimed, and how many claim 0.
+SELECT
+    SUM(CASE WHEN recovered_amount > claimed_amount THEN 1 ELSE 0 END) AS recovered_over_claimed,
+    SUM(CASE WHEN claimed_amount = 0   THEN 1 ELSE 0 END) AS claimed_zero,
+    SUM(CASE WHEN recovered_amount = 0 THEN 1 ELSE 0 END) AS recovered_zero
+FROM clean.profeco_complaint;
+
+-- Part 2: the 10 biggest differences, to look at them one by one.
+SELECT TOP 10 case_id, brand, outcome, claimed_amount, recovered_amount,
+       recovered_amount - claimed_amount AS difference
+FROM clean.profeco_complaint
+WHERE recovered_amount > claimed_amount
+ORDER BY recovered_amount - claimed_amount DESC;
+
+-- 3.3.14 (revision 2) Office H and the channel. Expected: office H holds
+-- almost all the Internet cases and almost none of the others, and its
+-- state is always Ciudad de México.
+SELECT flag_central_office, channel, state_name, COUNT(*) AS n
+FROM clean.profeco_complaint
+WHERE flag_central_office = 1
+   OR (channel = 'Internet' AND flag_central_office = 0)
+GROUP BY flag_central_office, channel, state_name
+ORDER BY flag_central_office DESC, n DESC;
+
+-- 3.3.15 (revision 2) Brands after the new categories. Expected: Fixed =
+-- the 4 operators plus Axtel, Gigacable, Telecable, Newww and Starlink.
+SELECT network_type, COUNT(DISTINCT brand) AS n_brands, COUNT(*) AS n
+FROM clean.profeco_complaint
+GROUP BY network_type
+ORDER BY n DESC;
+
+-- 3.3.16 (revision 2) What is odeco? Compare it with the office taken from the
+-- case ID and with the state. If odeco is the name of the office, each
+-- office_code should have one office_name.
+SELECT TOP 30 office_name, office_code, state_name, COUNT(*) AS n
+FROM clean.profeco_complaint
+GROUP BY office_name, office_code, state_name
+ORDER BY n DESC;

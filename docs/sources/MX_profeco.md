@@ -126,6 +126,7 @@ Only the end of each file was inspected, and the checks for criteria 1 and 4 wer
 - [x] Captures of checks B and C (`giro`) of block 2.8 (`step_2_8_b.png`, `step_2_8_c_giro.png`).
 - [x] Block 2.2 re-run with the exact comparison: 36,034 distinct IDs (`step_2_2.png`).
 - [ ] SHA-256 of the base file, and the license of the dataset.
+- [ ] Meaning of the column `odeco` (check 3.3.16 of `step_3.sql`, revision 2) and of the amount columns, from the PROFECO data dictionary page.
 - [x] BIT portal: download pages and the list of tables (criterion 4).
 - [ ] BIT: confirm that the `TotalPlay` rows of `EMPRESA` have `GRUPO` = `GRUPO SALINAS`, and read the terms of use.
 
@@ -356,3 +357,36 @@ It is not possible to tell which of the two dates is wrong. The rows are flagged
 **`monto_recuperado` equal to `-` (2.16).** The dash is spread over every outcome at a low rate: Conciliada 668 of 20,501 (3.3%), Desistimiento 590 of 11,781 (5.0%), No Conciliada 202 of 3,148 (6.4%), Improcedente 9 of 555 and Cancelada 10 of 48. If it meant "nothing recovered", it would concentrate in the cases without conciliation. It is a missing value and becomes `NULL`.
 
 **Values of `estado_procesal` (2.16).** Conciliada 20,501 (56.9%), Desistimiento 11,781 (32.7%), No Conciliada 3,148 (8.7%), Improcedente 555 (1.5%), Cancelada 48 and one row with the value `Turnada a Concil Person P/seg`. That text is a value of `tipo_conciliacion`, so it is one more value in the wrong column. The row is flagged.
+
+## Results of the clean layer (`step_3.sql`, 2026-10-27)
+
+`clean.profeco_complaint` has 36,034 rows, one per case and provider, and every check of the script matched the values expected from `step_2.sql`.
+
+| Check | Result | Evidence |
+|---|---|---|
+| 3.3.1 Rows | 36,034 in `stg` and in `clean` | ![3.3.1](../img/step_3_check_01.png) |
+| 3.3.2 Conversion | 0 bad filing dates, 0 bad close dates, 0 empty case IDs | ![3.3.2](../img/step_3_check_02.png) |
+| 3.3.3 Flags | missing close 66; close before filing 3; cancelled 48; swapped columns 430; shared case ID 4; outcome anomaly 1; unusual close day 147; valid duration 35,961 | ![3.3.3](../img/step_3_check_03.png) |
+| 3.3.4 Swapped columns | `item_class`: Servicio 31,692, Bien 4,304, NULL 38. `channel`: Internet 19,772, Personal 13,059, Escrito 3,048, Correo Electrónico 114, Teléfono 6, NULL 35 | ![3.3.4](../img/step_3_check_04.png) |
+| 3.3.5 Procedure groups | Conciliation 34,794; Queja 1,126; Other legal procedure 62; Not identified 52 | ![3.3.5](../img/step_3_check_05.png) |
+| 3.3.6 Brands (fixed) | Megacable 3,967; Izzi 3,693; Total Play 3,347 (two spellings merged); Telmex 2,261 | ![3.3.6 a](../img/step_3_check_06p1.png) |
+| 3.3.6 Brands (not classified) | Biggest: Sky, Dish, Samsung, Not identified 426, Bait 392, Motorola 273 | ![3.3.6 b](../img/step_3_check_06p2.png) |
+| 3.3.7 States | Every state text matched. 31 states have complaints; Tlaxcala (29) has none | ![3.3.7](../img/step_3_check_07.png) |
+| 3.3.8 Service hint | Not specified 26,228 (73%); Mobile telephony 4,039; Internet / data use 3,251; Internet 1,826; Television 362; Telephony 328. The five hints add up to 9,806 (27.2%), the same count as `step_2.sql` | ![3.3.8](../img/step_3_check_08.png) |
+| 3.3.9 Amounts | NULL: claimed 37, cost 34, recovered 1,479. Claimed 0.00 to 551,335.06; recovered 0.00 to 556,800.00 | ![3.3.9](../img/step_3_check_09.png) |
+| 3.3.10 Days to close | Conciliation: 34,773 rows, 0 to 1,014 days, average 67.9. Queja: 1,098 rows, average 160.6. Other legal procedure: 59 rows, average 173.3. Not identified: 31 rows, average 82.0 | ![3.3.10](../img/step_3_check_10.png) |
+| 3.3.11 Identical rows | 0 groups of fully identical rows in `stg` | ![3.3.11](../img/step_3_check_11.png) |
+| 3.3.12 State and office | Internet channel: 19,626 of 19,772 cases (99.3%) are in Ciudad de México. By brand: Megacable 69.7%, Total Play 68.3%, Izzi 59.1%, Telmex 21.2%. The office in the case ID matches the state one to one (YUC 940, JAL 670, GTO 663, ...), except office `H` (about 19,700 cases), which is Ciudad de México | ![3.3.12](../img/step_3_check_12.png) |
+| 3.3.13 Amounts | `monto_reclamado` = 0 in 28,142 rows (78%); `monto_recuperado` = 0 in 22,187 (62%); recovered larger than claimed in 8,739 rows (24%). The biggest differences have claimed 0.00 and a large recovered amount | ![3.3.13](../img/step_3_check_13.png) |
+
+The days with a valid duration add up to 35,961 (34,773 + 1,098 + 59 + 31), the same value as the flag.
+
+Image names follow the pattern `step_3_check_<NN>.png`; a check with two result tables has two files, `p1` and `p2` (check 6).
+
+### What the results say
+
+- **Brand mapping.** The "Not identified" brand is 426 rows, exactly Otros 126 + Otro 64 + P. Moral 119 + P. Física 117. The biggest brands left without classification are not fixed or mobile carriers of the analysis: satellite TV (Sky, Dish), phone makers (Samsung, Motorola, Apple, Xiaomi, Zte, Huawei, Honor, Oppo) and some small operators (Bait, Axtel, Gigacable, Telecable, Starlink, Uninet). They are kept as "Not classified" for now (see pending items).
+- **Service hint.** The free text of `problema_especial` that is not a service (for example "Cablemas ¿ Cablevision Monterr" 26 rows, "Izzi Telecom" 24) stays "Not specified". The `¿` is in the data as loaded; it still has to be compared with the original CSV.
+- **State is the PROFECO office, not where the consumer lives (decision D8).** The Internet channel (55% of the cases) is 99.3% Ciudad de México, and the case IDs show why: office `H` handles about 19,700 cases centrally, all in Ciudad de México, while the other offices match one state each (for example YUC is Yucatán; ODF, CDF, VIL and PDF are Ciudad de México; NEZ, TLA and MEX are Estado de México; TOR is Coahuila; CDJ is Chihuahua). Tlaxcala has no complaints because there is no office with that code. So 62% of Ciudad de México is a result of central handling.
+- **Amounts are not reliable for KPIs (decision D9).** `monto_reclamado` is 0 in 78% of the rows, and the recovered amount is larger than the claimed one in 24%. In the 10 biggest differences the claimed amount is 0.00, and one row looks like a typing error (claimed 18,480.00, recovered 184,480.00). The amounts stay as loaded and are used only as descriptive information.
+- **Duration.** The first look is plausible: 0 to 1,014 days, with an average of about 68 days for the conciliation procedure. It is a sanity check, not a project result (closed cases only, see right-censoring).

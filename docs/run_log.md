@@ -7,6 +7,7 @@ Record of each script execution on the local instance (SQL Server 2025 Express, 
 | 0 | `sql/common/step_0.sql` | 2026-10-25 | Done |
 | 1 | `sql/mx_profeco/step_1.sql` | 2026-10-26 | Done (second attempt, see incident) |
 | 2 | `sql/mx_profeco/step_2.sql` | 2026-10-26 | Done (gate passed on 2026-10-27) |
+| 3 | `sql/mx_profeco/step_3.sql` | 2026-10-27 | Run 1 done (checks 1 to 13); revision 2 to run |
 
 ## Step 0: database and schemas
 
@@ -77,3 +78,24 @@ Changes made to `step_2.sql` while running it:
 ## Feasibility gate result (2026-10-27)
 
 All four criteria passed, so decision D1 is accepted (México). Criterion 4 was checked by hand on the BIT downloads (`TD_ACC_BAF_ITE_VA`, pivot table in Excel); the details are in `docs/sources/MX_profeco.md`. Next: `step_3.sql` (clean layer).
+
+## Step 3: clean layer
+
+### Run 1
+
+The script creates `clean.brand_map`, `clean.state_map` and `clean.profeco_complaint` (36,034 rows). Checks 3.3.1 to 3.3.11 matched the expected values. The evidence is `docs/img/step_3_check_01.png` to `step_3_check_13.png` (check 6 has `06p1` and `06p2`), and the table with the results is in `docs/sources/MX_profeco.md`, section *Results of the clean layer*.
+
+Two checks were added after the first run and gave findings that changed the design:
+
+- **Check 3.3.12 (state):** the state is the PROFECO office that handled the case, and the Internet channel is handled by one central office in Ciudad de México (decision D8).
+- **Check 3.3.13 (amounts):** the claimed amount is 0 in 78% of the rows and the recovered amount exceeds the claimed one in 24% (decision D9).
+
+### Revision 2 (to run)
+
+Changes in `step_3.sql`, from the results of checks 3.3.6, 3.3.12 and 3.3.13:
+
+- `clean.brand_map` has new categories: Fixed (Axtel, Gigacable, Telecable, Newww, Starlink), Mobile (Bait), Pay TV (satellite) (Sky, Dish) and Device maker (Samsung, Motorola, Apple, Xiaomi, ZTE, Huawei, Honor, Oppo, Alcatel, LG, Hisense).
+- `clean.profeco_complaint` has three new columns: `office_code` (from the case ID), `office_name` (`odeco`) and `flag_central_office` (office `H`).
+- New checks: 3.3.14 (office H and channel), 3.3.15 (brands by category) and 3.3.16 (meaning of `odeco`).
+
+After running it, repeat and save these captures: `step_3_check_06p1.png` and `step_3_check_06p2.png` (brands), and new `step_3_check_14.png`, `step_3_check_15.png` and `step_3_check_16.png`. The other checks do not change; compare them with the values already recorded.

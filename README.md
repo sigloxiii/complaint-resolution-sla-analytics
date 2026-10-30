@@ -4,7 +4,7 @@
 
 > SQL Server + Power BI analysis of complaint resolution times against service-level targets, by responsible party and region, built on open government data. Source-agnostic star schema with per-source ingestion adapters.
 
-![License](https://img.shields.io/badge/License-MIT-yellow) ![Data](https://img.shields.io/badge/Data-PROFECO_%2B_BIT_M%C3%A9xico-blue) ![Status](https://img.shields.io/badge/Status-Phase_2_clean_layer-blue)
+![License](https://img.shields.io/badge/License-MIT-yellow) ![Data](https://img.shields.io/badge/Data-PROFECO_%2B_BIT_M%C3%A9xico-blue) ![Status](https://img.shields.io/badge/Status-Phase_3_denominators-blue)
 
 ---
 
@@ -34,8 +34,8 @@ This is my second portfolio project, following the Google Data Analytics certifi
 
 | # | Question | Main metrics |
 |---|---|---|
-| BQ1 | How long do complaints take to close, by responsible party, region and category? | Median and P90 of days to close |
-| BQ2 | Which responsible parties and regions have the worst outcomes? | Conciliation rate, recovered / claimed amount |
+| BQ1 | How long do complaints take to close, by responsible party, region (PROFECO office) and category? | Median and P90 of days to close |
+| BQ2 | Which responsible parties and regions have the worst outcomes? | Conciliation rate (amounts are descriptive only, see D9) |
 | BQ3 | How does complaint volume compare once normalized by customer base? | Complaints per 100,000 subscribers |
 | BQ4 | How have these indicators evolved over the period? | Trend and seasonality |
 | BQ5 | How do results compare with published benchmarks? | Contextual comparison with regulator reports |
@@ -86,7 +86,7 @@ The pipeline stages above describe how the data flow. The project phases below d
 |---|---|---|
 | 0 | Repository scaffold and feasibility gate on the Mexican dataset | Done (4 of 4 criteria passed, decision D1) |
 | 1 | Create database and schemas; load raw data into `stg` | Done (`step_0` and `step_1`) |
-| 2 | Clean and normalize: types, durations, provider mapping | Pending |
+| 2 | Clean and normalize: types, durations, provider mapping | Done (`step_3`; open points: brand classification, meaning of the state) |
 | 3 | Load denominators (subscribers) and build dimensions | Pending |
 | 4 | Build the `mart` star schema; SQL validation queries | Pending |
 | 5 | Power BI model, DAX measures and report | Pending |
@@ -138,6 +138,8 @@ The names differ from the published data dictionary (which uses upper case, for 
 - **Case-insensitive IDs:** two `expediente` values differ only in case and belong to different providers. They are not duplicates, and the data are not deduplicated by ID.
 - **Closed cases only:** the file has no open cases, so the most recent months are incomplete (right-censoring) and resolution times can look shorter than reality.
 - **Abbreviated and cut labels:** `procedimiento` and `tipo_conciliacion` hold abbreviated text, and some `procedimiento` values are cut at 30 characters (for example "Conciliación Medios Electrónic"), so the same label appears spelled two ways. They are mapped in the clean layer.
+- **The state is the PROFECO office:** 62% of the complaints are in Ciudad de México because the Internet channel is handled by a central office (decision D8). Regional analyses use only the cases not handled centrally.
+- **Amounts are unreliable:** `monto_reclamado` is 0 in 78% of the rows and the recovered amount exceeds the claimed one in 24% (decision D9). They are used only as descriptive information.
 - **Metric meaning:** days to close measures the duration of the PROFECO conciliation procedure, not the provider's repair time. Only complaints that reach PROFECO are recorded (self-selection bias).
 
 ### Feasibility gate

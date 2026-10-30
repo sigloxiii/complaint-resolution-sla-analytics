@@ -11,6 +11,8 @@ Each entry records the context, the options considered, the decision and the rea
 | D5 | Layered architecture (medallion-lite) and ELT | Accepted |
 | D6 | Load the CSV with a script instead of the SSMS wizard | Accepted |
 | D7 | Analysis level: provider, with a partial service hint | Accepted |
+| D8 | Meaning of the state: PROFECO office, not consumer residence | Provisional |
+| D9 | Amounts are descriptive only | Provisional |
 
 ---
 
@@ -162,3 +164,41 @@ Each entry records the context, the options considered, the decision and the rea
   - Telmex complaints (2,261) mix several services and cannot be split.
   - A split by service would need another source, for example BIT subscribers by service, to normalize rates only.
 - **Assumption to verify:** "Uso de Internet/datos" is probably mobile data, because it appears mostly under Telcel, Movistar and AT&T, while "Internet" appears under fixed operators. This is an inference from the brands, not from the data dictionary.
+
+---
+
+## D8. Meaning of the state: PROFECO office, not consumer residence
+
+- **Status:** Provisional
+- **Date:** 2026-10-27
+- **Context:** the clean layer has a state for every complaint, and the plan was to compare complaints with BIT accesses by state (BQ1 to BQ3). Check 3.3.12 of `step_3.sql` showed that the state does not describe the consumer.
+- **Evidence:**
+  - Ciudad de México has 22,477 of 36,034 complaints (62%). The Internet channel (19,772 cases, 55%) is 99.3% Ciudad de México.
+  - The case ID starts with the PROFECO office (`PFC.YUC.B.3/...`). Office `H` handles about 19,700 cases centrally, all in Ciudad de México. Every other office matches one state (YUC 940 cases in Yucatán, JAL 670, GTO 663, SLP 653, MOR 619, QRO 602, ...). TLA is Estado de México, not Tlaxcala, which has no complaints.
+  - By brand, the share in Ciudad de México follows the share of Internet cases: Megacable 69.7%, Total Play 68.3%, Izzi 59.1%, Telmex 21.2%.
+- **Options:**
+  - A. Use `estado` as the state of the consumer in every analysis. Rejected: Ciudad de México would look like the place with the most complaints per access only because of central handling.
+  - B. Use `estado` only for cases not handled centrally, label it "PROFECO office", and compare providers at national level.
+  - C. Drop every state analysis. Rejected: 45% of the cases (16,262) come from regional offices and keep a useful regional view.
+- **Decision:** B.
+  1. The clean layer keeps `office_code` (from the case ID), `office_name` (`odeco`, meaning to be confirmed) and `flag_central_office` (office `H`).
+  2. Analyses by region use only `flag_central_office = 0`, are titled "by PROFECO office", and show how many cases they leave out.
+  3. The headline provider comparison uses all the cases and the national BIT accesses of each operator group.
+  4. Rates per 100,000 accesses by state are exploratory: the consumers of one state can be served by another office.
+- **Reasons:** a result that depends on how PROFECO routes cases must not be read as a result about the consumers of each state.
+- **Revisit if:** the PROFECO data dictionary or check 3.3.16 (`odeco`) shows that `estado` is the residence of the consumer, or if office `H` turns out to be something else.
+
+---
+
+## D9. Amounts are descriptive only
+
+- **Status:** Provisional
+- **Date:** 2026-10-27
+- **Context:** BQ2 planned a recovered / claimed amount metric. Check 3.3.13 of `step_3.sql` tested it.
+- **Evidence:** `monto_reclamado` is 0 in 28,142 rows (78%) and `monto_recuperado` is 0 in 22,187 (62%). The recovered amount is larger than the claimed one in 8,739 rows (24%). The 10 biggest differences have a claimed amount of 0.00 and large recovered amounts (up to 556,800.00); one row looks like a typing error (claimed 18,480.00, recovered 184,480.00). The meaning of the 0 value is not documented.
+- **Options:**
+  - A. Use recovered / claimed as a KPI. Rejected: it is undefined for 78% of the rows and above 100% in 24%.
+  - B. Keep the amounts as loaded and use them only as descriptive information.
+  - C. Turn the 0 of the claimed amount into `NULL`. Rejected for now: it would be a guess about the meaning.
+- **Decision:** B. BQ2 is answered with the conciliation rate (share of `Conciliada` by provider and by office). Amounts, if shown, are labeled "as reported" with their coverage.
+- **Revisit if:** the PROFECO data dictionary explains the amount columns.
