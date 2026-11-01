@@ -131,8 +131,9 @@ The names differ from the published data dictionary (which uses upper case, for 
 - **Provider names vary** between records (for example, with and without the corporate suffix), so a normalization mapping table is required.
 - **Date format:** the data dictionary documents `dd-mm-yyyy`, but the file uses year-first text with dashes (`2022-01-03`), as confirmed in `step_2.sql` (0 values with another format). All dates are loaded as text and converted in the clean layer.
 - **Retroactive updates:** the publisher warns that historical data may change. A frozen copy and the download date will be recorded.
-- **Five cuts are published** and they are not simple, growing versions of one another. Which one to use, and how they overlap, will be confirmed with the overlap audit (decision D4 in `docs/decisions.md`).
+- **Five cuts are published** and they are not simple, growing versions of one another. The base cut is `junio_2026`, confirmed by an overlap audit (decision D4 in `docs/decisions.md`): it contains every case of the three older cuts.
 - **No complete service-type column:** `giro` is a provider classification, and `problema_especial` names a service in only 27% of the rows. The analysis is at provider level, and fixed vs mobile comes from a brand mapping (decision D7 in `docs/decisions.md`).
+- **One provider per complaint:** the base keeps one row per case ID, so a complaint against two providers (for example the operator and the phone maker) appears with one of them. About 0.3% of the fixed-operator complaints may be affected (decision D4).
 - **Placeholders** such as `-` (amounts, provider) and `sin dato` (`medio_ingreso`) are used instead of empty values and become `NULL` in the clean layer.
 - **Values in the wrong column:** in 430 rows (all filed in 2022) the values of `clase` and `medio_ingreso` are swapped. They are corrected in the clean layer and flagged.
 - **Case-insensitive IDs:** two `expediente` values differ only in case and belong to different providers. They are not duplicates, and the data are not deduplicated by ID.

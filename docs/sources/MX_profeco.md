@@ -23,7 +23,7 @@ Five cuts were published. They are **not** simple, growing versions of one anoth
 | `quejas_telecomunicaciones_2022_2025.csv` | 12,877 | ≈32,961 | Row count read from Excel (header assumed in row 1) |
 | `quejas_telecomunicaciones_2022_ene_2026.csv` | 14,239 | ≈32,652 | Same method. Largest file by size |
 | `quejas_telecomunicaciones_2022_may_2026.csv` | 1,561 | ≈4,081 | Same method. Looks like a partial slice |
-| `quejas_telecomunicaciones_2022_junio_2026.csv` | 14,010 | 36,034 | Counted in Power Query. **Provisional base file** (decision D4) |
+| `quejas_telecomunicaciones_2022_junio_2026.csv` | 14,010 | 36,034 | Counted in Power Query. **Base file** (decision D4, accepted) |
 | `quejas_telecom_2022_jul2026.csv` | 12,537 | ≈31,926 | Same method as the first rows. The file name pattern differs |
 
 SHA-256 of the base file (optional, proves the file was not modified): TBD.
@@ -67,7 +67,7 @@ The five cuts were published by hand, with no documented methodology: the names 
 1. **Integrity:** unique `expediente` and no type errors in the dates.
 2. **Coverage:** widest date range and highest volume.
 3. **Plausibility:** close dates vary and are not a single cut-off date.
-4. **Consistency with the other cuts:** overlapping cases agree (overlap audit, pending).
+4. **Consistency with the other cuts:** overlapping cases agree (overlap audit done: see the section at the end).
 5. **Traceability:** name, size, date and hash of the file are recorded.
 
 Evidence: the end of each file as seen in Excel (the last rows show the latest records of each cut).
@@ -77,7 +77,7 @@ Evidence: the end of each file as seen in Excel (the last rows show the latest r
 | `..._2022_2025.csv` | ≈32,961 | Rows sorted by filing date. The last filing is 25/11/2025 and the last close date seen is 28/11/2025, so coverage ends in November 2025 | Audit only |
 | `..._2022_ene_2026.csv` | ≈32,652 | A last block sorted by office, with filings from 2025 and close dates in January 2026. The file is larger in bytes per row than the others | Audit only |
 | `..._2022_may_2026.csv` | ≈4,081 | Filings from 12/05/2026 to 27/05/2026 and close dates up to 29/05/2026. Only the end was inspected; it looks like a partial slice | Audit only |
-| `..._2022_junio_2026.csv` | 36,034 | Same last records as `may_2026`. Power Query: unique `expediente`, no date errors, 0.18% of close dates empty, close dates up to 29/05/2026 | **Base (provisional)** |
+| `..._2022_junio_2026.csv` | 36,034 | Same last records as `may_2026`. Power Query: unique `expediente`, no date errors, 0.18% of close dates empty, close dates up to 29/05/2026 | **Base (confirmed)** |
 | `quejas_telecom_2022_jul2026.csv` | ≈31,926 | Every visible close date is 31/07/2026, even for cases filed in 2025 (it may be a cut-off date, not a real close date) | Audit only, until it is understood |
 
 ![Tail of 2022_2025](../img/mx_profeco_tail_2022_2025.png)
@@ -86,7 +86,7 @@ Evidence: the end of each file as seen in Excel (the last rows show the latest r
 ![Tail of junio_2026](../img/mx_profeco_tail_junio_2026.png)
 ![Tail of jul2026](../img/mx_profeco_tail_jul2026.png)
 
-Only the end of each file was inspected, and the checks for criteria 1 and 4 were done only for `junio_2026`. The verdicts are therefore provisional and will be reviewed with the overlap audit.
+Only the end of each file was inspected, and the checks for criteria 1 and 4 were done only for `junio_2026`. The verdicts were reviewed with the overlap audit (`step_4.sql`, see the last section) and confirmed.
 
 ## Observations (hypotheses to verify)
 
@@ -433,7 +433,7 @@ What the results say:
 
 ### Follow-up checks (4.7 to 4.10)
 
-Evidence: `step_4_check_07.png`, `step_4_check_08.png`, `step_4_check_09.png`, `step_4_check_10a_c.png` (4.10a to 4.10c) and `step_4_check_10d_e.png` (4.10d and 4.10e).
+Evidence: `step_4_check_07.png`, `step_4_check_08.png`, `step_4_check_09.png`, `step_4_check_10a_c.png` (4.10a to 4.10c), `step_4_check_10d_e.png` (4.10d and 4.10e) and `step_4_check_11.png` (4.11a and 4.11b).
 
 | Check | Result | Evidence |
 |---|---|---|
@@ -443,4 +443,9 @@ Evidence: `step_4_check_07.png`, `step_4_check_08.png`, `step_4_check_09.png`, `
 | 4.10a to c | Brand differences in `2022_2025` are swaps between brands (Telcel with Samsung, Motorola, Zte, At&t...): the second row of a repeated ID. In `ene_2026` the office `H` is called "Dir. Gral. Cons. Telecom" and in the base "Dgpct" (526 cases; the two names are already known). In `jul2026` the provider names differ in punctuation ("S. de R.L. de C.V." and "C.V") | ![4.10a-c](../img/step_4_check_10a_c.png) |
 | 4.10d and e | Amounts differ only in format: `0` and `0.0`, `100` and `100.0` (`jul2026`); the base has `-` where `ene_2026` has an empty value (1,479). No real difference of value | ![4.10d-e](../img/step_4_check_10d_e.png) |
 
-Reading: dates, amounts and names agree once the format is ignored. The two real findings are that `jul2026` omits part of the 2025 filings, and that the older cut repeats some IDs with a second provider. Check 4.11 measures whether that second row affects the four fixed operators.
+| 4.11a Conflicts in repeated IDs | Of 958 repeated IDs in `2022_2025`: brand differs in 837, provider in 931, close date in 41, reason in 49, outcome in 1; **filing date and office never differ**. They are the same case with a second provider | ![4.11a](../img/step_4_check_11.png) |
+| 4.11b Fixed operators | 134 repeated IDs involve Telmex, Izzi, Megacable or Total Play; the base keeps a fixed brand in 89 and another brand in 45 | ![4.11b](../img/step_4_check_11.png) |
+
+Reading: dates, amounts and names agree once the format is ignored. The two real findings are that `jul2026` omits part of the 2025 filings, and that the older cut repeats some IDs with a second provider (a complaint against two providers, for example the operator and the phone maker). The base keeps one row per ID, so about 45 of 13,268 fixed-operator complaints (0.3%) may carry the other provider. This is below the 1% threshold and is recorded as a known limitation in D4.
+
+**Verdict:** the base file `junio_2026` is confirmed (decision D4 Accepted).

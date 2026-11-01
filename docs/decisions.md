@@ -7,7 +7,7 @@ Each entry records the context, the options considered, the decision and the rea
 | D1 | Data source: México (PROFECO) or US (NYC 311) | Accepted (México) |
 | D2 | Clean the data in SQL instead of Power Query | Accepted |
 | D3 | Repository name and design | Accepted |
-| D4 | Choice of the base CSV cut | Provisional |
+| D4 | Choice of the base CSV cut | Accepted |
 | D5 | Layered architecture (medallion-lite) and ELT | Accepted |
 | D6 | Load the CSV with a script instead of the SSMS wizard | Accepted |
 | D7 | Analysis level: provider, with a partial service hint | Accepted |
@@ -43,7 +43,7 @@ Each entry records the context, the options considered, the decision and the rea
   - Accesses are not subscriptions. A subscription can have several accesses.
   - Some groups have very few accesses in some states (for example Grupo Salinas has 137 in Tlaxcala), so a minimum denominator is needed before showing a state rate.
 - **Confirmed later (2026-10-31):** `TotalPlay` is the only `EMPRESA` of `GRUPO SALINAS`; licenses are recorded in `docs/sources/licenses.md`.
-- **Still open:** the overlap audit of the five cuts (D4).
+- **Closed later:** the overlap audit of the five cuts supports D4 (2026-10-31, `step_4.sql`).
 - **Revisit if:** the BIT mapping does not match the PROFECO brands, or the license does not allow publishing derived data.
 
 ---
@@ -82,7 +82,7 @@ Each entry records the context, the options considered, the decision and the rea
 
 ## D4. Choice of the base CSV cut
 
-- **Status:** Provisional
+- **Status:** Accepted (2026-10-31), after the overlap audit
 - **Date:** 2026-10-25
 - **Context:** datos.gob.mx publishes five CSV cuts of the same dataset (evidence in `docs/sources/MX_profeco.md`). They were updated by hand and there is **no standard methodology** behind them: the file names follow different patterns, the row counts do not grow with time, one cut seems to use a cut-off date as the close date, and text capitalization differs. The portal does not explain how each cut was produced and reports a last update on 2026-09-22.
 - **Options:**
@@ -92,11 +92,17 @@ Each entry records the context, the options considered, the decision and the rea
   1. Integrity: unique case ID and no type errors in the dates.
   2. Coverage: widest date range and highest volume.
   3. Plausibility: close dates vary (they are not a single cut-off date).
-  4. Consistency with the other cuts: overlapping cases agree (overlap audit, pending).
+  4. Consistency with the other cuts: overlapping cases agree (overlap audit, done in `step_4.sql`).
   5. Traceability: name, size, date and hash of the file are recorded.
 - **Decision:** use `quejas_telecomunicaciones_2022_junio_2026.csv` as the base for the gate. The other four cuts are kept for audit only.
 - **Reason:** it is the only cut that meets criteria 1 to 3 with evidence (see the comparison in `docs/sources/MX_profeco.md`).
-- **Revisit if:** the overlap audit shows differences between cuts, the newest cut (probably `jul2026`) turns out to be a corrected republication, or the gate fails.
+- **Overlap audit (2026-10-31, evidence in `docs/sources/MX_profeco.md`):**
+  - The base contains every case of `2022_2025`, `ene_2026` and `may_2026` (0 cases only in those cuts).
+  - Shared cases agree: filing date 0 differences; close date 0.15% at most; amounts and names differ only in format (`0` and `0.0`, `-` and empty, punctuation, capitalization).
+  - `jul2026` is not a corrected version of the base: it omits 6,067 cases filed in 2025, and its 1,960 extra cases are closed in June and July 2026, after the end of the base window (2026-05-29).
+  - `2022_2025` repeats 958 IDs with a second provider (the same case, the same filing date and office, another brand). The base keeps one row per ID. Of 134 repeated IDs with a fixed operator, the base keeps the fixed one in 89 and another brand in 45.
+- **Known limitation:** a complaint against two providers appears once, with one provider. About 45 of 13,268 fixed-operator complaints (0.3%) may be attributed to the other provider. The effect is below 1% and is not corrected; the union of cuts (option B) would recover those rows but not the later months, because the newer cuts have one row per ID too.
+- **Revisit if:** the publisher releases a cut that is a superset of the base, or the gate fails.
 
 ---
 
