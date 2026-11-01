@@ -57,11 +57,12 @@ CREATE TABLE clean.brand_map (
 INSERT INTO clean.brand_map (brand_raw, brand, operator_group, network_type)
 VALUES
     (N'Telmex',       N'Telmex',        N'AMÉRICA MÓVIL',  N'Fixed'),
+    -- BIT denominator for Izzi = GRUPO TELEVISA without EMPRESA = SKY (decided in step 4).
     (N'Izzi',         N'Izzi',          N'GRUPO TELEVISA', N'Fixed'),
     (N'Megacable',    N'Megacable',     N'MEGACABLE-MCM',  N'Fixed'),
     -- Total Play is written two ways in the file (both are the same company).
-    -- Its BIT group is GRUPO SALINAS. PENDING: confirm in the BIT file that the
-    -- rows with EMPRESA = TotalPlay have GRUPO = GRUPO SALINAS.
+    -- Its BIT group is GRUPO SALINAS. CONFIRMED (2026-10-31): in the BIT file the
+    -- only EMPRESA under GRUPO SALINAS is TotalPlay, in every year.
     (N'Totalplay',    N'Total Play',    N'GRUPO SALINAS',  N'Fixed'),
     (N'Total Play',   N'Total Play',    N'GRUPO SALINAS',  N'Fixed'),
     (N'Telcel',       N'Telcel',        N'AMÉRICA MÓVIL',  N'Mobile'),

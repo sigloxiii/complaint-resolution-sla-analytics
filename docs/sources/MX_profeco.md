@@ -131,7 +131,7 @@ Only the end of each file was inspected, and the checks for criteria 1 and 4 wer
 - [ ] Meaning of the amount columns (decision D9), from the PROFECO data dictionary page.
 - [x] `step_3_check_06p1.png` and `step_3_check_06p2.png` captured again after revision 2, and check 3.3.17 run (`step_3_check_17.png`).
 - [x] BIT portal: download pages and the list of tables (criterion 4).
-- [ ] BIT: confirm that the `TotalPlay` rows of `EMPRESA` have `GRUPO` = `GRUPO SALINAS`, and read the terms of use.
+- [x] BIT: the `TotalPlay` rows of `EMPRESA` have `GRUPO` = `GRUPO SALINAS` (`bit_acc_baf_pivot_salinas_2024.png`, `bit_acc_baf_pivot_salinas_all.png`), and the terms of use were checked (`licenses.md`).
 
 ## Type of service (`step_2.sql`, block 2.8)
 
@@ -256,7 +256,7 @@ Source: BIT (Banco de Información de Telecomunicaciones, CRT), module *Descarga
 | Columns | `FOLIO`, `K_ENTIDAD`, `K_MUNICIPIO`, `K_ACCESO_INTERNET`, `TECNO_ACCESO_INTERNET`, `FECHA`, `ANIO`, `MES`, `K_EMPRESA`, `EMPRESA`, `CONCESIONARIO`, `A_TOTAL_E`, `K_GRUPO`, `GRUPO`, `ENTIDAD`, `MUNICIPIO` |
 | Grain | One row per folio, state, municipality, technology, company and month. `A_TOTAL_E` is the number of accesses |
 | Period | January 2013 to December 2024 (minimum year 2013, last year 2024 with 12 months) |
-| Operator | Company (`EMPRESA`) and group (`GRUPO`). The four groups of interest appear in `GRUPO` as `AMÉRICA MÓVIL` (Telmex), `GRUPO TELEVISA` (Izzi), `MEGACABLE-MCM` and `GRUPO SALINAS`. In `EMPRESA` there is no entry called Grupo Salinas, but there is one called `TotalPlay`, so Total Play is identified by `EMPRESA` (to confirm that its rows have `GRUPO` = `GRUPO SALINAS`) |
+| Operator | Company (`EMPRESA`) and group (`GRUPO`). The four groups of interest appear in `GRUPO` as `AMÉRICA MÓVIL` (Telmex), `GRUPO TELEVISA` (Izzi), `MEGACABLE-MCM` and `GRUPO SALINAS`. In `EMPRESA` there is no entry called Grupo Salinas, but there is one called `TotalPlay`, so Total Play is identified by `EMPRESA`. Confirmed on 2026-10-31: `GRUPO SALINAS` contains only `TOTALPLAY`, in 2024 and in all years |
 | Date format | `FECHA` is text like `15Jan2021`; use `ANIO` and `MES` |
 | Encoding | Not UTF-8 (a CSV viewer rejected it); the load script must set the code page |
 
@@ -271,6 +271,18 @@ Accesses by group in December 2024 (pivot table in Excel, filters `ANIO` = 2024 
 | All four | 27,809,589 | 32 states plus state 99 |
 
 - Accesses without state (`K_ENTIDAD` = 99, "Sin información de Entidad"): 35,990, which is **0.13%** of the total.
+- **Total Play confirmed:** under `GRUPO SALINAS` the only company is `TOTALPLAY`, so the group and the company are the same operator (2024 and all years pivots).
+- **Companies inside each group** (pivot of all years, `bit_acc_baf_pivot_grupos_all.png`):
+
+| BIT group | Companies (`EMPRESA`) | Rule for the PROFECO brand |
+|---|---|---|
+| AMÉRICA MÓVIL | TELMEX (1,318 M) and TELNOR (59.6 M, 4.3%) | Telmex = the whole group (Telnor is the Telmex subsidiary of the north) |
+| GRUPO TELEVISA | IZZI (333 M), CABLEMAS, CABLEVISION, CABLECOM, CABLEVISION RED, TELEVISION INTERNACIONAL, BESTEL, FTTH, and `SKY` (34.1 M) | Izzi = the group **without** `SKY`. The cable companies are the historical entities of the Izzi network; in 2024 the group has only IZZI and SKY |
+| MEGACABLE-MCM | MEGACABLE (402 M, 99.9%), MCM TELECOM, TELEVIA and a small Telecable | Megacable = the whole group |
+| GRUPO SALINAS | TOTALPLAY only | Total Play = the whole group |
+
+- **Grupo Televisa is not only Izzi:** `SKY` is about 7% of the group in 2024 (5.1 M of 73.0 M summed monthly accesses). Using the group would understate the Izzi rate, so Sky is excluded from the Izzi denominator in step 4 (the Sky complaints are already outside the fixed scope, see `clean.brand_map`).
+- **Do not add months:** `A_TOTAL_E` is a stock of accesses per month. The 2024 sum of Grupo Salinas (62,000,222) is about twelve months of stock (about 5.2 M a month). Rates use the December value or the monthly average, never the yearly sum.
 - Some groups have very few accesses in some states (Grupo Salinas: 137 in Tlaxcala, 190 in Zacatecas, 228 in Baja California Sur, 419 in Campeche, 568 in Oaxaca; Grupo Televisa: 562 in Baja California Sur). State rates need a minimum denominator.
 - The portal footer says "Algunos Derechos Reservados"; the terms of use were not read yet (open item in `licenses.md`).
 - The fixed telephony table `TD_LINEAS_TELFIJA_ITE_VA` and the subscriptions table `TD_SUS_BAF_ITE_VA` were not inspected. They are an improvement, not a condition of the gate.
