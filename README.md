@@ -194,10 +194,10 @@ sql/
   mx_profeco/      # one folder per source: load and clean (stg → clean)
 powerbi/           # .pbix and PDF report
 docs/
-  decisions.md    # decision log (D1 to D7)
+  decisions.md     # decision log (D1 to D11)
   run_log.md       # script runs and their evidence
   glossary_of_terms.md
-  sources/         # one note per data source
+  sources/         # one note per data source, and licenses.md
   img/             # evidence images, named <topic>_<name>.png
 ```
 
@@ -207,7 +207,14 @@ The structure is limited to two folder levels.
 
 ## Data sources and licenses
 
-Pending: license, download date and attribution for each dataset (source URLs are in `docs/sources/MX_profeco.md`). The code in this repository is MIT-licensed. **The data keeps the license of its original publisher.**
+The code and documentation of this repository are MIT-licensed. **The data keeps the license of its original publisher.** Raw files are never published; only code, documentation, captures and aggregated results are (decision D10). Full record: [`docs/sources/licenses.md`](docs/sources/licenses.md).
+
+| Source | Use | License | Citation |
+|---|---|---|---|
+| PROFECO, "Quejas en materia de telecomunicaciones" | Complaints (case level, cleaned in SQL) | Creative Commons Attribution 4.0 (CC BY 4.0) | PROFECO; https://www.datos.gob.mx/dataset/quejas_materia_telecomunicaciones; CC BY 4.0; 2026-10-24. Modified: cleaned and aggregated by the author |
+| CRT, Banco de Información de Telecomunicaciones (BIT), `TD_ACC_BAF_ITE_VA` | Fixed broadband accesses by operator group and state (denominators). Published only as aggregates | No explicit license on record; used in good faith (risk accepted, D10) | Comisión Reguladora de Telecomunicaciones; https://bit.crt.gob.mx/BitWebApp/; 2026-10-26 |
+
+*Independent portfolio project. It is not an official product and is not endorsed by PROFECO, the CRT or the Government of México. Any BIT-derived content is removed on request of the CRT.*
 
 ---
 

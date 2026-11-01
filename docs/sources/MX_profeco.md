@@ -8,10 +8,10 @@ Exploration log of the source. The first part was written **before** running the
 |---|---|
 | Publisher | PROFECO (Procuraduría Federal del Consumidor), published on datos.gob.mx |
 | Dataset page | https://www.datos.gob.mx/dataset/quejas_materia_telecomunicaciones |
-| Data dictionary | https://datos.profeco.gob.mx/diccionarioDatos.php |
+| Data dictionary | https://datos.profeco.gob.mx/diccionarioDatos.php (returns "File not found" on 2026-10-31; the dictionary must be found again) |
 | Last update shown by the portal | 2026-09-22 (evidence E1) |
 | Resources on the dataset page | 5 (matches the five files below) |
-| License | **To be verified** before publishing any file derived from these data |
+| License | Creative Commons Attribution 4.0, from the resource page (see `licenses.md`) |
 | Download date | 2026-10-24 (file modification date shown by Windows Explorer, evidence E2) |
 
 ## Downloaded files
@@ -125,7 +125,8 @@ Only the end of each file was inspected, and the checks for criteria 1 and 4 wer
 - [x] Excel captures of the file ends saved in `docs/img/` (`mx_profeco_tail_*.png`).
 - [x] Captures of checks B and C (`giro`) of block 2.8 (`step_2_8_b.png`, `step_2_8_c_giro.png`).
 - [x] Block 2.2 re-run with the exact comparison: 36,034 distinct IDs (`step_2_2.png`).
-- [ ] SHA-256 of the base file, and the license of the dataset.
+- [ ] SHA-256 of the base file.
+- [x] License evidence of both sources (`docs/sources/licenses.md`).
 - [x] Meaning of the column `odeco`: name of the PROFECO office (check 3.3.16).
 - [ ] Meaning of the amount columns (decision D9), from the PROFECO data dictionary page.
 - [x] `step_3_check_06p1.png` and `step_3_check_06p2.png` captured again after revision 2, and check 3.3.17 run (`step_3_check_17.png`).
@@ -271,7 +272,7 @@ Accesses by group in December 2024 (pivot table in Excel, filters `ANIO` = 2024 
 
 - Accesses without state (`K_ENTIDAD` = 99, "Sin información de Entidad"): 35,990, which is **0.13%** of the total.
 - Some groups have very few accesses in some states (Grupo Salinas: 137 in Tlaxcala, 190 in Zacatecas, 228 in Baja California Sur, 419 in Campeche, 568 in Oaxaca; Grupo Televisa: 562 in Baja California Sur). State rates need a minimum denominator.
-- The portal footer says "Algunos Derechos Reservados"; the terms of use were not read yet.
+- The portal footer says "Algunos Derechos Reservados"; the terms of use were not read yet (open item in `licenses.md`).
 - The fixed telephony table `TD_LINEAS_TELFIJA_ITE_VA` and the subscriptions table `TD_SUS_BAF_ITE_VA` were not inspected. They are an improvement, not a condition of the gate.
 - Background: a news report (Yahoo Noticias, January 2026) said the BIT had gone 143 days without a significant update after the IFT was replaced by the CRT. The December 2024 end of the series is consistent with that delay.
 

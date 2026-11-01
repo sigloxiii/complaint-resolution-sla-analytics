@@ -13,6 +13,8 @@ Each entry records the context, the options considered, the decision and the rea
 | D7 | Analysis level: provider, with a partial service hint | Accepted |
 | D8 | Meaning of the state: PROFECO office, not consumer residence | Provisional |
 | D9 | Amounts are descriptive only | Provisional |
+| D10 | What may be published | Accepted (documented risk) |
+| D11 | Provider scope: four large fixed operators, the rest as Other | Accepted |
 
 ---
 
@@ -203,3 +205,33 @@ Each entry records the context, the options considered, the decision and the rea
   - C. Turn the 0 of the claimed amount into `NULL`. Rejected for now: it would be a guess about the meaning.
 - **Decision:** B. BQ2 is answered with the conciliation rate (share of `Conciliada` by provider and by office). Amounts, if shown, are labeled "as reported" with their coverage.
 - **Revisit if:** the PROFECO data dictionary explains the amount columns.
+
+---
+
+## D10. What may be published
+
+- **Status:** Accepted (with a documented risk)
+- **Date:** 2026-10-30
+- **Context:** The repository is public. PROFECO data carry the CC BY 4.0 license on the resource page, which allows derived datasets with attribution. The BIT has no license on record: the footer says "Algunos Derechos Reservados" without a link, and the datasets carry no terms. The contact form of the BIT did not send the query (2026-10-29) and a reply from the institutions is not expected. The general terms of gob.mx do not apply to this data and do not grant a license either. See `docs/sources/licenses.md`.
+- **Options:**
+  - A. Publish the raw and clean tables. Rejected: no license for the BIT, and the files are large.
+  - B. Publish PROFECO data only, keep the BIT local. Rejected: it leaves the BQ1 rates out of the public result for a risk that is low.
+  - C. Wait for the CRT. Rejected: no reply is expected and the project would stall.
+  - D. Publish code, documentation, captures and BIT **aggregates** (operator group, state, year) with source, date, non-endorsement notice and a removal-on-request statement.
+- **Decision:** D. Raw files stay in `data/raw/` (ignored by git). The risk is accepted: the permission rests on the publisher's own open-format statement, not on a written license.
+- **Revisit if:** the CRT answers, asks for removal, or publishes terms of use.
+
+---
+
+## D11. Provider scope: four large fixed operators, the rest as Other
+
+- **Status:** Accepted
+- **Date:** 2026-10-31
+- **Context:** The `clean` layer keeps every brand (`clean.brand_map`), but the analysis needs enough cases per provider for stable medians and P90, and a BIT denominator for rates per 100,000 accesses.
+- **Evidence:** the four large fixed operators (Telmex, Izzi, Megacable, Total Play) have 13,268 of the 13,358 fixed-broadband complaints (99.3%) and are the only ones with at least 100 complaints per year in 2022 to 2025 (criterion 3 of D1). Axtel, Gigacable, Telecable, Starlink and Newww add 90 complaints in total. The BIT publishes accesses by operator group, with useful detail for these four.
+- **Options:**
+  - A. Analyse every brand. Rejected: with a few cases the medians and P90 are not stable, and there is no denominator for most of them.
+  - B. Drop the small providers from the data. Rejected: it hides 0.7% of the volume and loses the totals.
+  - C. Analyse the four operators and group all the others as **Other** in the dashboard.
+- **Decision:** C. Provider-level metrics (median and P90 of days to close, conciliation rate, rates per 100,000 accesses) are shown for the four operators. The remaining fixed brands appear as **Other** in the volume and trend views. Mobile brands, pay TV, device makers and unidentified brands stay in `clean` and are outside the dashboard scope (fixed broadband only).
+- **Revisit if:** a small operator reaches 100 complaints per year, or the BIT publishes its own group.

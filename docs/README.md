@@ -6,15 +6,16 @@ Index of the project documentation. Everything here is written in English.
 
 | File or folder | Purpose |
 |---|---|
-| [`decisions.md`](decisions.md) | Decision log (D1 to D9): context, options considered, decision and reason |
+| [`decisions.md`](decisions.md) | Decision log (D1 to D10): context, options considered, decision and reason |
 | [`run_log.md`](run_log.md) | Record of each script execution, with its evidence |
 | [`glossary_of_terms.md`](glossary_of_terms.md) | Short definitions of the technical terms used in the project, with the case where each one mattered |
-| [`sources/`](sources/) | One note per data source: files, evidence, observations, columns and handling rules |
+| [`sources/`](sources/) | One note per data source (files, evidence, observations, columns and handling rules) and the license record |
 | [`img/`](img/) | Evidence images (screenshots) |
 
 ## Sources
 
-- [`sources/MX_profeco.md`](sources/MX_profeco.md): PROFECO telecommunications complaints (México).
+- [`sources/MX_profeco.md`](sources/MX_profeco.md): PROFECO telecommunications complaints and BIT accesses (México).
+- [`sources/licenses.md`](sources/licenses.md): licenses, terms of use, citations and publishing rules for both sources.
 
 ## Suggested reading order
 
@@ -22,6 +23,7 @@ Index of the project documentation. Everything here is written in English.
 2. [`decisions.md`](decisions.md): why the project is built the way it is.
 3. [`sources/MX_profeco.md`](sources/MX_profeco.md): what the data look like and how the base file was chosen.
 4. [`run_log.md`](run_log.md): what has been executed so far.
+5. [`sources/licenses.md`](sources/licenses.md): what may be published and how to cite the sources.
 
 ## Conventions
 

@@ -19,6 +19,7 @@ This folder will hold the report (`.pbix`) and its PDF export.
 
 ## Notes
 
-- A `.pbix` file in Import mode **contains the imported data**. It is published only if the license of the source allows it; otherwise only the PDF is published.
+- A `.pbix` file in Import mode **contains the imported data**. It is published only with aggregated tables (decision D10: no row-level BIT data); otherwise only the PDF is published.
+- Every report page carries the source citations and the non-endorsement notice of `docs/sources/licenses.md`.
 - Screenshots of the report go to `docs/img/` and are named `powerbi_<name>.png`.
 - Power BI temporary files (`.pbi/`) are ignored by Git.
