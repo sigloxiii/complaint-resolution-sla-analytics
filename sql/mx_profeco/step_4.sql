@@ -258,6 +258,204 @@ GROUP BY c.source_file,
 ORDER BY c.source_file, close_year, close_month;
 
 -- ---------------------------------------------------------------------
+-- FOLLOW-UP CHECKS (added after the first results of 4.1 to 4.6)
+-- ---------------------------------------------------------------------
+-- The first run showed that two cuts write dates as 2025/02/18 (slashes) and
+-- that the amounts and some names differ in text. These checks separate
+-- real differences from format differences.
+
+-- ---------------------------------------------------------------------
+-- 4.7 Dates compared as DATES, not as text
+-- ---------------------------------------------------------------------
+-- 4.4 counted every row as different in fecha_ingreso for 2022_2025 and
+-- ene_2026 only because of the separator (/ versus -). Here the text is
+-- converted first. A difference is: both dates exist and differ, or only one
+-- of them exists.
+WITH shared AS (
+    SELECT c.source_file,
+           TRY_CONVERT(date, NULLIF(LTRIM(RTRIM(c.fecha_ingreso)), ''), 23) AS c_filing,
+           TRY_CONVERT(date, NULLIF(LTRIM(RTRIM(b.fecha_ingreso)), ''), 23) AS b_filing,
+           TRY_CONVERT(date, NULLIF(LTRIM(RTRIM(c.fecha_cierre)),  ''), 23) AS c_close,
+           TRY_CONVERT(date, NULLIF(LTRIM(RTRIM(b.fecha_cierre)),  ''), 23) AS b_close
+    FROM   stg.profeco_cuts AS c
+    JOIN   stg.profeco_cuts AS b
+           ON  b.source_file = 'junio_2026 (base)'
+           AND b.expediente COLLATE Latin1_General_BIN2 = c.expediente COLLATE Latin1_General_BIN2
+    WHERE  c.source_file <> 'junio_2026 (base)'
+)
+SELECT source_file,
+       COUNT(*) AS n_shared,
+       SUM(CASE WHEN c_filing <> b_filing
+                  OR (c_filing IS NULL AND b_filing IS NOT NULL)
+                  OR (c_filing IS NOT NULL AND b_filing IS NULL) THEN 1 ELSE 0 END) AS d_filing_date,
+       SUM(CASE WHEN c_close <> b_close
+                  OR (c_close IS NULL AND b_close IS NOT NULL)
+                  OR (c_close IS NOT NULL AND b_close IS NULL) THEN 1 ELSE 0 END) AS d_close_date
+FROM   shared
+GROUP BY source_file
+ORDER BY source_file;
+
+-- ---------------------------------------------------------------------
+-- 4.8 Cases of the base that the jul2026 cut does not have
+-- ---------------------------------------------------------------------
+-- jul2026 lacks 6,068 cases of the base. By filing year and by outcome we
+-- see if it is a specific group (for example cancelled cases) or random.
+WITH missing AS (
+    SELECT b.fecha_ingreso, b.estado_procesal
+    FROM   stg.profeco_cuts AS b
+    LEFT JOIN stg.profeco_cuts AS j
+           ON  j.source_file = 'jul2026'
+           AND j.expediente COLLATE Latin1_General_BIN2 = b.expediente COLLATE Latin1_General_BIN2
+    WHERE  b.source_file = 'junio_2026 (base)'
+      AND  j.expediente IS NULL
+)
+SELECT YEAR(TRY_CONVERT(date, NULLIF(LTRIM(RTRIM(fecha_ingreso)), ''), 23)) AS filing_year,
+       estado_procesal,
+       COUNT(*) AS n_base_cases_not_in_jul2026
+FROM   missing
+GROUP BY YEAR(TRY_CONVERT(date, NULLIF(LTRIM(RTRIM(fecha_ingreso)), ''), 23)), estado_procesal
+ORDER BY filing_year, n_base_cases_not_in_jul2026 DESC;
+
+-- ---------------------------------------------------------------------
+-- 4.9 Repeated IDs inside a cut (2022_2025 and may_2026)
+-- ---------------------------------------------------------------------
+-- 4.1 showed 988 repeated IDs in 2022_2025 and 14 in may_2026. For each
+-- repeated ID we count how many different versions of the row exist
+-- (looking at the main columns). n_identical_ids = the repeated rows are
+-- exact copies; n_conflicting_ids = the rows of one ID disagree.
+WITH rep AS (
+    SELECT source_file,
+           expediente COLLATE Latin1_General_BIN2 AS case_id,
+           COUNT(*) AS n_rows,
+           COUNT(DISTINCT CONCAT_WS('|', fecha_ingreso, fecha_cierre, estado_procesal,
+                                    proveedor, nombre_comercial, odeco, estado,
+                                    monto_reclamado, monto_recuperado)) AS n_versions
+    FROM   stg.profeco_cuts
+    GROUP BY source_file, expediente COLLATE Latin1_General_BIN2
+    HAVING COUNT(*) > 1
+)
+SELECT source_file,
+       COUNT(*)                                          AS n_repeated_ids,
+       SUM(n_rows)                                       AS n_rows_involved,
+       SUM(CASE WHEN n_versions = 1 THEN 1 ELSE 0 END)   AS n_identical_ids,
+       SUM(CASE WHEN n_versions > 1 THEN 1 ELSE 0 END)   AS n_conflicting_ids
+FROM   rep
+GROUP BY source_file
+ORDER BY source_file;
+
+-- ---------------------------------------------------------------------
+-- 4.10 What the differing values look like
+-- ---------------------------------------------------------------------
+-- The most frequent (base value, cut value) pairs, for the columns where
+-- 4.5 still shows differences. Default collation: capitalization-only pairs
+-- are not listed. Take one capture per query (4.10a to 4.10e).
+
+-- 4.10a brand (nombre_comercial) in 2022_2025
+SELECT TOP 10 b.nombre_comercial AS base_value, c.nombre_comercial AS cut_value, COUNT(*) AS n
+FROM stg.profeco_cuts AS c
+JOIN stg.profeco_cuts AS b ON b.source_file = 'junio_2026 (base)'
+     AND b.expediente COLLATE Latin1_General_BIN2 = c.expediente COLLATE Latin1_General_BIN2
+WHERE c.source_file = '2022_2025' AND ISNULL(c.nombre_comercial,'') <> ISNULL(b.nombre_comercial,'')
+GROUP BY b.nombre_comercial, c.nombre_comercial ORDER BY n DESC;
+
+-- 4.10b office (odeco) in ene_2026
+SELECT TOP 10 b.odeco AS base_value, c.odeco AS cut_value, COUNT(*) AS n
+FROM stg.profeco_cuts AS c
+JOIN stg.profeco_cuts AS b ON b.source_file = 'junio_2026 (base)'
+     AND b.expediente COLLATE Latin1_General_BIN2 = c.expediente COLLATE Latin1_General_BIN2
+WHERE c.source_file = 'ene_2026' AND ISNULL(c.odeco,'') <> ISNULL(b.odeco,'')
+GROUP BY b.odeco, c.odeco ORDER BY n DESC;
+
+-- 4.10c provider (proveedor) in jul2026
+SELECT TOP 10 b.proveedor AS base_value, c.proveedor AS cut_value, COUNT(*) AS n
+FROM stg.profeco_cuts AS c
+JOIN stg.profeco_cuts AS b ON b.source_file = 'junio_2026 (base)'
+     AND b.expediente COLLATE Latin1_General_BIN2 = c.expediente COLLATE Latin1_General_BIN2
+WHERE c.source_file = 'jul2026' AND ISNULL(c.proveedor,'') <> ISNULL(b.proveedor,'')
+GROUP BY b.proveedor, c.proveedor ORDER BY n DESC;
+
+-- 4.10d claimed amount (monto_reclamado) in jul2026
+SELECT TOP 10 b.monto_reclamado AS base_value, c.monto_reclamado AS cut_value, COUNT(*) AS n
+FROM stg.profeco_cuts AS c
+JOIN stg.profeco_cuts AS b ON b.source_file = 'junio_2026 (base)'
+     AND b.expediente COLLATE Latin1_General_BIN2 = c.expediente COLLATE Latin1_General_BIN2
+WHERE c.source_file = 'jul2026' AND ISNULL(c.monto_reclamado,'') <> ISNULL(b.monto_reclamado,'')
+GROUP BY b.monto_reclamado, c.monto_reclamado ORDER BY n DESC;
+
+-- 4.10e recovered amount (monto_recuperado) in ene_2026
+SELECT TOP 10 b.monto_recuperado AS base_value, c.monto_recuperado AS cut_value, COUNT(*) AS n
+FROM stg.profeco_cuts AS c
+JOIN stg.profeco_cuts AS b ON b.source_file = 'junio_2026 (base)'
+     AND b.expediente COLLATE Latin1_General_BIN2 = c.expediente COLLATE Latin1_General_BIN2
+WHERE c.source_file = 'ene_2026' AND ISNULL(c.monto_recuperado,'') <> ISNULL(b.monto_recuperado,'')
+GROUP BY b.monto_recuperado, c.monto_recuperado ORDER BY n DESC;
+
+-- ---------------------------------------------------------------------
+-- 4.11 Repeated IDs of 2022_2025: which columns conflict, and do they matter?
+-- ---------------------------------------------------------------------
+-- 4.9 showed 932 IDs with two different rows in 2022_2025, while the base has
+-- each ID once. 4.10a suggests that the second row belongs to another brand
+-- (Telcel / Samsung): a complaint against two providers. 4.11a counts the
+-- columns that conflict; 4.11b counts the IDs that involve one of the four
+-- fixed operators, the only ones that the project analyses (D11).
+
+-- 4.11a Columns that disagree inside the repeated IDs
+WITH rep AS (
+    SELECT expediente COLLATE Latin1_General_BIN2 AS case_id,
+           COUNT(DISTINCT nombre_comercial) AS n_brand,
+           COUNT(DISTINCT proveedor)        AS n_provider,
+           COUNT(DISTINCT fecha_ingreso)    AS n_filing,
+           COUNT(DISTINCT fecha_cierre)     AS n_close,
+           COUNT(DISTINCT estado_procesal)  AS n_outcome,
+           COUNT(DISTINCT odeco)            AS n_office,
+           COUNT(DISTINCT motivo_reclamacion) AS n_reason
+    FROM   stg.profeco_cuts
+    WHERE  source_file = '2022_2025'
+    GROUP BY expediente COLLATE Latin1_General_BIN2
+    HAVING COUNT(*) > 1
+)
+SELECT COUNT(*)                                         AS n_repeated_ids,
+       SUM(CASE WHEN n_brand    > 1 THEN 1 ELSE 0 END)  AS differ_brand,
+       SUM(CASE WHEN n_provider > 1 THEN 1 ELSE 0 END)  AS differ_provider,
+       SUM(CASE WHEN n_filing   > 1 THEN 1 ELSE 0 END)  AS differ_filing,
+       SUM(CASE WHEN n_close    > 1 THEN 1 ELSE 0 END)  AS differ_close,
+       SUM(CASE WHEN n_outcome  > 1 THEN 1 ELSE 0 END)  AS differ_outcome,
+       SUM(CASE WHEN n_office   > 1 THEN 1 ELSE 0 END)  AS differ_office,
+       SUM(CASE WHEN n_reason   > 1 THEN 1 ELSE 0 END)  AS differ_reason
+FROM   rep;
+
+-- 4.11b Repeated IDs that involve a fixed operator, and what the base keeps
+-- n_ids_with_fixed_brand : repeated IDs where at least one row is Telmex, Izzi,
+--                          Megacable or Total Play (any spelling).
+-- base_keeps_fixed       : of those, IDs whose single base row is a fixed brand.
+-- base_keeps_other       : IDs whose base row is another brand (the fixed
+--                          operator is lost for that complaint).
+WITH rep AS (
+    SELECT expediente COLLATE Latin1_General_BIN2 AS case_id
+    FROM   stg.profeco_cuts
+    WHERE  source_file = '2022_2025'
+    GROUP BY expediente COLLATE Latin1_General_BIN2
+    HAVING COUNT(*) > 1
+),
+fixed_ids AS (
+    SELECT DISTINCT r.case_id
+    FROM   rep AS r
+    JOIN   stg.profeco_cuts AS c
+           ON  c.source_file = '2022_2025'
+           AND c.expediente COLLATE Latin1_General_BIN2 = r.case_id
+    WHERE  c.nombre_comercial IN (N'Telmex', N'Izzi', N'Megacable', N'Totalplay', N'Total Play')
+)
+SELECT COUNT(*) AS n_ids_with_fixed_brand,
+       SUM(CASE WHEN b.nombre_comercial IN (N'Telmex', N'Izzi', N'Megacable', N'Totalplay', N'Total Play')
+                THEN 1 ELSE 0 END) AS base_keeps_fixed,
+       SUM(CASE WHEN b.nombre_comercial IN (N'Telmex', N'Izzi', N'Megacable', N'Totalplay', N'Total Play')
+                THEN 0 ELSE 1 END) AS base_keeps_other
+FROM   fixed_ids AS f
+JOIN   stg.profeco_cuts AS b
+       ON  b.source_file = 'junio_2026 (base)'
+       AND b.expediente COLLATE Latin1_General_BIN2 = f.case_id;
+
+-- ---------------------------------------------------------------------
 -- How to read the results (decision rule for D4)
 -- ---------------------------------------------------------------------
 -- D4 is accepted if:

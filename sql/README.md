@@ -8,6 +8,7 @@ SQL Server scripts that build the pipeline `stg → clean → mart` inside the d
 sql/
   common/        # source-agnostic scripts (database, schemas, mart)
   mx_profeco/    # scripts specific to one data source (load, profile, clean)
+  mx_bit/        # the BIT denominators source (load, clean)
 ```
 
 - `common/` contains what is reused whatever the dataset is.
@@ -33,6 +34,7 @@ sql/
 | 2 | `mx_profeco/step_2.sql` | Feasibility gate profiling (read-only queries) |
 | 3 | `mx_profeco/step_3.sql` | Clean layer: `clean.profeco_complaint`, brand and state lookup tables, quality flags |
 | 4 | `mx_profeco/step_4.sql` | Overlap audit of the five PROFECO cuts (decision D4); audit tables in `stg`, read-only for the pipeline |
+| 5 | `mx_bit/step_5.sql` | Load the BIT fixed broadband accesses (`TD_ACC_BAF_ITE_VA`) into `stg.bit_acc_baf` |
 
 ## Requirements
 
