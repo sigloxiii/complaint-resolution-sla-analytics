@@ -8,7 +8,8 @@ Record of each script execution on the local instance (SQL Server 2025 Express, 
 | 1 | `sql/mx_profeco/step_1.sql` | 2026-10-26 | Done (second attempt, see incident) |
 | 2 | `sql/mx_profeco/step_2.sql` | 2026-10-26 | Done (gate passed on 2026-10-27) |
 | 3 | `sql/mx_profeco/step_3.sql` | 2026-10-27 | Run 1 done (checks 1 to 13); revision 2 done (checks 14 to 17) |
-| 4 | `sql/mx_profeco/step_4.sql` | 2026-10-31 | Run 1 done (checks 4.1 to 4.6); checks 4.1 to 4.11 done; D4 accepted |
+| 4 | `sql/mx_profeco/step_4.sql` | 2026-10-31 | Done (checks 4.1 to 4.11); D4 accepted |
+| 5 | `sql/mx_bit/step_5.sql` | 2026-11-01 | Done (592,281 rows loaded; checks 5.0 to 5.8) |
 
 ## Step 0: database and schemas
 
@@ -108,3 +109,13 @@ Results (images `step_3_check_14.png` to `step_3_check_17.png` and the new `step
 - Of the 16,236 cases not handled by `H`, 16,221 (99.9%) have the main state of their office and 15 have another one (check 3.3.17). The Fixed category now has 9 brands and 13,358 cases (check 6, part 1).
 
 The revision 2 is finished.
+
+## Step 5: BIT load (`sql/mx_bit/step_5.sql`, 2026-11-01)
+
+Loads `TD_ACC_BAF_ITE_VA.csv` (downloaded 2026-10-26) into `stg.bit_acc_baf` as text. Evidence: `step_5_check_00.png` to `step_5_check_08p2.png`; the results are summarized in `docs/sources/MX_profeco.md`.
+
+- **File layout found by the probe (5.0):** comma separator, text with commas in double quotes, lines ending in CR+LF (`0x0d0a`), accents correct with code page 1252, and **two empty extra columns** at the end of every line (`,,`). The staging table has two helper columns that are checked empty (`n_not_empty` = 0) and dropped.
+- **Load:** 592,281 rows, the same as Excel.
+- **Checks:** years 2013 to 2024 and months 1 to 12; no bad year, month or state; December 2024 matches the Excel pivots (the four groups 27,809,589); 33 state codes; the companies of each group reproduce the pivots.
+- **Corrections to the checks:** 5.3 used a collation that ignores accents, so every row looked "broken" (fixed with a binary collation, result 0); 5.6 did not filter by group, so it showed 1,051,366 accesses without state for all operators (35,990 for the four groups, as expected).
+- **Missing accesses (5.8):** 1,831 rows (0.31%) have an empty `a_total_e` (NULL, not text). 1,462 belong to the four groups, mainly 2015 to 2016 and 2020 (804 rows). In the period of the rates there are 33 rows in 2022, 12 in 2023 and none in 2024.

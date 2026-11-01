@@ -449,3 +449,26 @@ Evidence: `step_4_check_07.png`, `step_4_check_08.png`, `step_4_check_09.png`, `
 Reading: dates, amounts and names agree once the format is ignored. The two real findings are that `jul2026` omits part of the 2025 filings, and that the older cut repeats some IDs with a second provider (a complaint against two providers, for example the operator and the phone maker). The base keeps one row per ID, so about 45 of 13,268 fixed-operator complaints (0.3%) may carry the other provider. This is below the 1% threshold and is recorded as a known limitation in D4.
 
 **Verdict:** the base file `junio_2026` is confirmed (decision D4 Accepted).
+
+## Load of the BIT into `stg` (`step_5.sql`, 2026-11-01)
+
+Evidence: `step_5_check_00.png` to `step_5_check_08p2.png`. Table `stg.bit_acc_baf`, 16 text columns, loaded from `TD_ACC_BAF_ITE_VA.csv` (downloaded 2026-10-26).
+
+| Check | Result | Evidence |
+|---|---|---|
+| 5.0 Probe | Comma separator, quoted text, CR+LF line ends, accents correct in code page 1252, and two empty extra columns at the end of every line | ![5.0](../img/step_5_check_00.png) |
+| 5.1 Load | 592,281 rows, as in Excel. The two extra columns are empty (`n_not_empty` = 0) and are dropped | ![5.1](../img/step_5_check_01p1.png) ![5.1c](../img/step_5_check_01p2.png) |
+| 5.2 First rows | Values in the right columns. The state is a name ("México") and the municipality a name; the technologies include "DSL" and "Tecnología móvil" | ![5.2](../img/step_5_check_02.png) |
+| 5.3 Encoding | The four groups show correct accents; `n_broken` = 0 | ![5.3](../img/step_5_check_03.png) |
+| 5.4 Year, month, numbers | Years 2013 to 2024, months 1 to 12; 0 bad years, months and states; **1,831 empty accesses** | ![5.4](../img/step_5_check_04.png) |
+| 5.5 December 2024 | América Móvil 11,208,977; Grupo Televisa 5,970,288; Megacable-MCM 5,316,545; Grupo Salinas 5,313,779; the four groups **27,809,589** (same as the Excel pivots) | ![5.5](../img/step_5_check_05.png) |
+| 5.6 States | 33 codes. Without state (99) in December 2024: 1,051,366 for all operators and **35,990 for the four groups** (0.13%) | ![5.6](../img/step_5_check_06.png) |
+| 5.7 Companies | The companies of each group reproduce the pivot of the section on the BIT (Telmex and Telnor; Total Play; Izzi, Sky and the historical cable companies; Megacable, MCM, Televia and a small Telecable) | ![5.7](../img/step_5_check_07.png) |
+| 5.8 Empty accesses | All 1,831 values are NULL (empty field), not text. 1,462 are in the four groups (2013 to 2021: 1,417; 2022: 33; 2023: 12; 2024: 0) and 369 in other operators | ![5.8a](../img/step_5_check_08p1.png) ![5.8b](../img/step_5_check_08p2.png) |
+
+What the results say:
+
+- The load is faithful: the row count and the December 2024 totals match the manual evidence.
+- The empty accesses (0.31% of the rows) stay empty in the clean layer, they are not turned into 0. They are flagged. December 2024, the base of the rates, has none in the four groups.
+- **Open question for the clean layer:** the column `TECNO_ACCESO_INTERNET` has several technologies, one of them "Tecnología móvil", and the December 2024 totals above include all of them. Before using them as the denominator, the technologies must be listed (a check of the next step) and the project must decide if all of them count as fixed broadband accesses.
+- **Do not add months:** `A_TOTAL_E` is a stock at the end of each month (see the section on the BIT).
