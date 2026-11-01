@@ -8,7 +8,7 @@ This folder will hold the report (`.pbix`) and its PDF export.
 
 - Connection: Import mode to the `mart` tables of the database `complaint_sla` (instance `.\SQLEXPRESS`).
 - Model: star schema, with the relationships defined in Power BI.
-- Business measures in DAX (for example median and P90 days to close, and complaints per 100,000 subscribers).
+- Business measures in DAX (for example median and P90 days to close, and complaints per 100,000 accesses).
 - Planned pages:
   1. Overview (KPIs)
   2. Resolution time by provider

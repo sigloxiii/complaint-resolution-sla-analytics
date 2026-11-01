@@ -433,15 +433,15 @@ What the results say:
 
 ### Follow-up checks (4.7 to 4.10)
 
-Evidence: `step_4_check_07.png`, `step_4_check_08.png`, `step_4_check_09.png`, `step_4_check_10a_c.png` (4.10a to 4.10c), `step_4_check_10d_e.png` (4.10d and 4.10e) and `step_4_check_11.png` (4.11a and 4.11b).
+Evidence: `step_4_check_07.png`, `step_4_check_08.png`, `step_4_check_09.png`, `step_4_check_10_a-c.png` (4.10a to 4.10c), `step_4_check_10_d-e.png` (4.10d and 4.10e) and `step_4_check_11.png` (4.11a and 4.11b).
 
 | Check | Result | Evidence |
 |---|---|---|
 | 4.7 Dates as dates | Filing date: **0 differences** in every cut. Close date: 50 cases in `2022_2025` (0.15%), 6 in `ene_2026`, 3 in `jul2026`, 0 in `may_2026` | ![4.7](../img/step_4_check_07.png) |
 | 4.8 Base cases missing in `jul2026` | 6,067 of the 6,068 were filed in **2025**, in every outcome (Conciliada 3,380; Desistimiento 2,059; No Conciliada 532; Improcedente 95). `jul2026` leaves out part of the 2025 filings, so it is not a superset of the base | ![4.8](../img/step_4_check_08.png) |
 | 4.9 Repeated IDs | `2022_2025`: 958 IDs in 1,946 rows, **932 with conflicting rows** and 26 exact copies. `may_2026`: 14 IDs, all exact copies | ![4.9](../img/step_4_check_09.png) |
-| 4.10a to c | Brand differences in `2022_2025` are swaps between brands (Telcel with Samsung, Motorola, Zte, At&t...): the second row of a repeated ID. In `ene_2026` the office `H` is called "Dir. Gral. Cons. Telecom" and in the base "Dgpct" (526 cases; the two names are already known). In `jul2026` the provider names differ in punctuation ("S. de R.L. de C.V." and "C.V") | ![4.10a-c](../img/step_4_check_10a_c.png) |
-| 4.10d and e | Amounts differ only in format: `0` and `0.0`, `100` and `100.0` (`jul2026`); the base has `-` where `ene_2026` has an empty value (1,479). No real difference of value | ![4.10d-e](../img/step_4_check_10d_e.png) |
+| 4.10a to c | Brand differences in `2022_2025` are swaps between brands (Telcel with Samsung, Motorola, Zte, At&t...): the second row of a repeated ID. In `ene_2026` the office `H` is called "Dir. Gral. Cons. Telecom" and in the base "Dgpct" (526 cases; the two names are already known). In `jul2026` the provider names differ in punctuation ("S. de R.L. de C.V." and "C.V") | ![4.10a-c](../img/step_4_check_10_a-c.png) |
+| 4.10d and e | Amounts differ only in format: `0` and `0.0`, `100` and `100.0` (`jul2026`); the base has `-` where `ene_2026` has an empty value (1,479). No real difference of value | ![4.10d-e](../img/step_4_check_10_d-e.png) |
 
 | 4.11a Conflicts in repeated IDs | Of 958 repeated IDs in `2022_2025`: brand differs in 837, provider in 931, close date in 41, reason in 49, outcome in 1; **filing date and office never differ**. They are the same case with a second provider | ![4.11a](../img/step_4_check_11.png) |
 | 4.11b Fixed operators | 134 repeated IDs involve Telmex, Izzi, Megacable or Total Play; the base keeps a fixed brand in 89 and another brand in 45 | ![4.11b](../img/step_4_check_11.png) |

@@ -38,7 +38,7 @@ GO
 -- ---------------------------------------------------------------------
 
 -- Brand table. operator_group uses the name of the group in the BIT
--- (column GRUPO of TD_ACC_BAF_ITE_VA), so subscribers can be joined later.
+-- (column GRUPO of TD_ACC_BAF_ITE_VA), so accesses can be joined later.
 -- network_type: Fixed = fixed-network operator (including satellite internet),
 --   Mobile = mobile operator, Pay TV (satellite) = Sky and Dish (they sell no
 --   internet, so they have NO operator_group: joining them to the BIT accesses
@@ -103,7 +103,7 @@ VALUES
 GO
 
 -- State table. state_code is the INEGI code (01 to 32), the same code that
--- the BIT uses in K_ENTIDAD, so complaints and subscribers join by state.
+-- the BIT uses in K_ENTIDAD, so complaints and accesses join by state.
 -- Some states are listed with more than one written form.
 -- Check 3.3.7 lists any state text of the file that is not matched here.
 DROP TABLE IF EXISTS clean.state_map;
@@ -205,7 +205,7 @@ CREATE TABLE clean.profeco_complaint (
     flag_unusual_close_day  BIT NOT NULL,         -- more than 100 cases closed on that date (possible batch closing)
     flag_valid_duration     BIT NOT NULL,         -- days_to_close can be used in duration KPIs
     office_code             NVARCHAR(10)  NULL,   -- PROFECO office, taken from case_id (PFC.YUC.B.3/... gives YUC)
-    office_name             NVARCHAR(200) NULL,   -- odeco as loaded (meaning to be confirmed, check 3.3.16)
+    office_name             NVARCHAR(200) NULL,   -- odeco: name of the PROFECO office (confirmed, check 3.3.16)
     flag_central_office     BIT NOT NULL          -- office H: cases handled centrally (the state is NOT where the consumer lives)
 );
 GO

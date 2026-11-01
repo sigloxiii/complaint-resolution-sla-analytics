@@ -36,7 +36,7 @@ This is my second portfolio project, following the Google Data Analytics certifi
 |---|---|---|
 | BQ1 | How long do complaints take to close, by responsible party, region (PROFECO office) and category? | Median and P90 of days to close |
 | BQ2 | Which responsible parties and regions have the worst outcomes? | Conciliation rate (amounts are descriptive only, see D9) |
-| BQ3 | How does complaint volume compare once normalized by customer base? | Complaints per 100,000 subscribers |
+| BQ3 | How does complaint volume compare once normalized by customer base? | Complaints per 100,000 fixed broadband accesses (2022 to 2024) |
 | BQ4 | How have these indicators evolved over the period? | Trend and seasonality |
 | BQ5 | How do results compare with published benchmarks? | Contextual comparison with regulator reports |
 
@@ -53,7 +53,7 @@ The pipeline is layered, and only the first two layers depend on the data source
 ### Pipeline map: from the raw file to the dashboard
 
 ```
-[ EXTERNAL SOURCE ]  (CSV published by PROFECO)
+[ EXTERNAL SOURCES ]  (CSV files published by PROFECO and by the CRT, BIT)
         │
         ▼
 [ STAGE 1: INGESTION / STAGING ]  schema stg  (bronze)
@@ -87,12 +87,12 @@ The pipeline stages above describe how the data flow. The project phases below d
 | 0 | Repository scaffold and feasibility gate on the Mexican dataset | Done (4 of 4 criteria passed, decision D1) |
 | 1 | Create database and schemas; load raw data into `stg` | Done (`step_0` and `step_1`) |
 | 2 | Clean and normalize: types, durations, provider mapping | Done (`step_3`, revision 2; the state is the PROFECO office, see D8) |
-| 3 | Load denominators (subscribers) and build dimensions | In progress (BIT loaded into `stg`, `step_5`) |
+| 3 | Load denominators (BIT accesses) and build dimensions | In progress (BIT loaded into `stg`, `step_5`) |
 | 4 | Build the `mart` star schema; SQL validation queries | Pending |
 | 5 | Power BI model, DAX measures and report | Pending |
 | 6 | Documentation, findings and limitations | Pending |
 
-**Planned star schema:** `fact_complaint` (one row per case), `fact_subscribers` (provider × state × quarter), `dim_provider`, `dim_state`, `dim_reason`, `dim_date`.
+**Planned star schema:** `fact_complaint` (one row per case), `fact_accesses` (operator group × state × month), `dim_provider`, `dim_state`, `dim_reason`, `dim_date`.
 
 ---
 
@@ -105,7 +105,7 @@ Desk research on the candidate sources is complete, and the five PROFECO files w
 | Source | Grain | Role in the project |
 |---|---|---|
 | PROFECO telecommunications complaints (datos.gob.mx) | One row per complaint case | **Primary fact source** |
-| BIT, Telecommunications Information Bank (CRT) | Quarterly, by operator / state / technology | Denominators (subscribers) |
+| BIT, Telecommunications Information Bank (CRT) | Quarterly, by operator / state / technology | Denominators (fixed broadband accesses; accesses are not subscriptions) |
 | IFT *Manual de definiciones de los indicadores estadísticos de telecomunicaciones* (2018) | PDF | Definitions of the BIT indicators and table keys ([link](https://www.ift.org.mx/sites/default/files/contenidogeneral/estadisticas/manualdefinicionesmarzo2018.pdf)) |
 | "Soy Usuario" quarterly reports (IFT/CRT) | Aggregated, PDF | Cross-validation of results |
 | Fixed-service quality guidelines (IFT, 2020) | Regulatory thresholds | Context for benchmarks |
@@ -192,7 +192,8 @@ data/
   reference/       # small seed files, if any (the provider mapping lives in SQL: clean.brand_map)
 sql/
   common/          # source-agnostic: database, schemas, mart, views
-  mx_profeco/      # one folder per source: load and clean (stg → clean)
+  mx_profeco/      # PROFECO complaints: load, audit and clean (stg → clean)
+  mx_bit/          # BIT accesses: load and clean (stg → clean)
 powerbi/           # .pbix and PDF report
 docs/
   decisions.md     # decision log (D1 to D11)
