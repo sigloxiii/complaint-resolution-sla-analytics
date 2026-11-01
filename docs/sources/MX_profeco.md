@@ -114,9 +114,9 @@ Only the end of each file was inspected, and the checks for criteria 1 and 4 wer
 
 ## Pending evidence
 
-- [ ] Dataset page ("Ver base de datos") with the list of the five resources, their update dates and the license field.
-- [ ] Page of the data dictionary.
-- [ ] Left-hand columns of the Power Query errors view (cancelled cases with provider "-").
+- [ ] Dataset page ("Ver base de datos") with the list of the five resources and their update dates. The license field of the base resource is on record (`profeco_license_note.png`).
+- [ ] Page of the data dictionary: the old URL returns "File not found"; optional: look for the dictionary again (D8 and D9 were accepted without it).
+- [x] Left-hand columns of the Power Query errors view: no longer needed, the clean layer is built in SQL (D2).
 - [x] Results of `step_2.sql` in SSMS (blocks 2.1 to 2.14), received on 2026-10-26.
 - [x] Results of the repeated-ID queries (block 2.2), block 2.15 and block 2.16.
 - [x] Results of block 2.8 for `sector`, `procedimiento`, `medio_ingreso` and `tipo_conciliacion`.
@@ -128,7 +128,7 @@ Only the end of each file was inspected, and the checks for criteria 1 and 4 wer
 - [ ] SHA-256 of the base file.
 - [x] License evidence of both sources (`docs/sources/licenses.md`).
 - [x] Meaning of the column `odeco`: name of the PROFECO office (check 3.3.16).
-- [ ] Meaning of the amount columns (decision D9), from the PROFECO data dictionary page.
+- [x] Meaning of the amount columns: not documented; D9 accepted without the dictionary (2026-10-31).
 - [x] `step_3_check_06p1.png` and `step_3_check_06p2.png` captured again after revision 2, and check 3.3.17 run (`step_3_check_17.png`).
 - [x] BIT portal: download pages and the list of tables (criterion 4).
 - [x] BIT: the `TotalPlay` rows of `EMPRESA` have `GRUPO` = `GRUPO SALINAS` (`bit_acc_baf_pivot_salinas_2024.png`, `bit_acc_baf_pivot_salinas_all.png`), and the terms of use were checked (`licenses.md`).
@@ -291,7 +291,7 @@ Accesses by group in December 2024 (pivot table in Excel, filters `ANIO` = 2024 
 **Consequences for the design**
 
 - Rates per 100,000 accesses can only be computed for 2022 to 2024. Complaints of 2025 and 2026 are used for volume and duration.
-- The BIT operator is a group. The provider mapping table (`data/reference/`) must map each PROFECO brand to a group.
+- The BIT operator is a group. The provider mapping table (`clean.brand_map`, in `step_3.sql`) maps each PROFECO brand to a group.
 - Evidence files in `docs/img/`: `bit_portal_baf.png`, `bit_portal_tf.png`, `bit_zip_baf.png`, `bit_zip_tf.png`, `bit_market_share_baf.png`, `bit_market_share_telfija.png`, `bit_acc_baf_filter_anio.png`, `bit_acc_baf_filter_mes.png`, `bit_acc_baf_pivot_entidad.png`, `bit_acc_baf_pivot_grupo.png`.
 
 Complaints by filing year (the two spellings of Total Play are added):

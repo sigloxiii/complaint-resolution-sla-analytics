@@ -188,7 +188,7 @@ assets/            # banner and other static images
 data/
   raw/             # source files as downloaded (not versioned)
   interim/         # intermediate files (not versioned)
-  reference/       # small seed files, for example the provider mapping
+  reference/       # small seed files, if any (the provider mapping lives in SQL: clean.brand_map)
 sql/
   common/          # source-agnostic: database, schemas, mart, views
   mx_profeco/      # one folder per source: load and clean (stg → clean)

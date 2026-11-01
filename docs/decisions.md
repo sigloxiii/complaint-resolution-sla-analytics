@@ -11,8 +11,8 @@ Each entry records the context, the options considered, the decision and the rea
 | D5 | Layered architecture (medallion-lite) and ELT | Accepted |
 | D6 | Load the CSV with a script instead of the SSMS wizard | Accepted |
 | D7 | Analysis level: provider, with a partial service hint | Accepted |
-| D8 | Meaning of the state: PROFECO office, not consumer residence | Provisional |
-| D9 | Amounts are descriptive only | Provisional |
+| D8 | Meaning of the state: PROFECO office, not consumer residence | Accepted |
+| D9 | Amounts are descriptive only | Accepted |
 | D10 | What may be published | Accepted (documented risk) |
 | D11 | Provider scope: four large fixed operators, the rest as Other | Accepted |
 
@@ -172,7 +172,7 @@ Each entry records the context, the options considered, the decision and the rea
 
 ## D8. Meaning of the state: PROFECO office, not consumer residence
 
-- **Status:** Provisional
+- **Status:** Accepted (2026-10-31), without the data dictionary
 - **Date:** 2026-10-27
 - **Context:** the clean layer has a state for every complaint, and the plan was to compare complaints with BIT accesses by state (BQ1 to BQ3). Check 3.3.12 of `step_3.sql` showed that the state does not describe the consumer.
 - **Evidence:**
@@ -190,13 +190,14 @@ Each entry records the context, the options considered, the decision and the rea
   4. Rates per 100,000 accesses by state are exploratory: the consumers of one state can be served by another office.
 - **Reasons:** a result that depends on how PROFECO routes cases must not be read as a result about the consumers of each state.
 - **Later evidence (2026-10-29):** `odeco` is the name of the office (check 3.3.16), and office `H` has 19,798 cases (99.2% of the Internet channel, check 3.3.14), with two names: "Dir. Gral. Cons. Telecom" and "Dgpct". Check 3.3.17: of the 16,236 cases not handled by `H`, 16,221 (99.9%) have the main state of their office and only 15 have another one. So `estado` is the state of the office for practically every case.
+- **Confirmation (2026-10-31):** the PROFECO data dictionary is not available (its URL returns "File not found"). The decision is accepted on the data evidence: 99.9% of the cases not handled by office `H` carry the main state of their office, and option B is the prudent reading, since it labels the state as the PROFECO office and excludes the centrally handled cases.
 - **Revisit if:** the PROFECO data dictionary says that `estado` is the residence of the consumer.
 
 ---
 
 ## D9. Amounts are descriptive only
 
-- **Status:** Provisional
+- **Status:** Accepted (2026-10-31), without the data dictionary
 - **Date:** 2026-10-27
 - **Context:** BQ2 planned a recovered / claimed amount metric. Check 3.3.13 of `step_3.sql` tested it.
 - **Evidence:** `monto_reclamado` is 0 in 28,142 rows (78%) and `monto_recuperado` is 0 in 22,187 (62%). The recovered amount is larger than the claimed one in 8,739 rows (24%). The 10 biggest differences have a claimed amount of 0.00 and large recovered amounts (up to 556,800.00); one row looks like a typing error (claimed 18,480.00, recovered 184,480.00). The meaning of the 0 value is not documented.
@@ -205,6 +206,7 @@ Each entry records the context, the options considered, the decision and the rea
   - B. Keep the amounts as loaded and use them only as descriptive information.
   - C. Turn the 0 of the claimed amount into `NULL`. Rejected for now: it would be a guess about the meaning.
 - **Decision:** B. BQ2 is answered with the conciliation rate (share of `Conciliada` by provider and by office). Amounts, if shown, are labeled "as reported" with their coverage.
+- **Confirmation (2026-10-31):** the PROFECO data dictionary is not available (its URL returns "File not found"). Option B stays valid without it: the amounts are shown "as reported" with their coverage, and no KPI depends on their meaning.
 - **Revisit if:** the PROFECO data dictionary explains the amount columns.
 
 ---

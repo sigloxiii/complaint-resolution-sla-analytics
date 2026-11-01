@@ -80,7 +80,7 @@ How they apply:
 
 ## 4. Rules for this repository (good-faith use)
 
-No written answer from the CRT is expected. The contact form of the BIT did not send the query on 2026-10-29 (capture stored as evidence), and the project does not wait for a reply. The use is documented and limited instead:
+No written answer from the CRT is expected. The contact form of the BIT did not send the query on 2026-10-29 (captures `docs/img/bit_crt_request.png` and `docs/img/bit_terms_of_use.png`), and the project does not wait for a reply. The use is documented and limited instead:
 
 1. Raw files are never versioned (`data/raw/` is ignored by git). Only code, documentation, capture images and aggregated results are published.
 2. BIT data are published only as aggregates (operator group, state, year). No row-level BIT data and no copy of the files are redistributed. The figures are statistics of public interest that the publisher itself offers in open format, "sin necesidad de realizar trámites ni solicitudes".

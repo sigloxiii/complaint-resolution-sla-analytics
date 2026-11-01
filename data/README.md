@@ -6,7 +6,7 @@ This folder holds the project data. **Raw and intermediate files are not version
 |---|---|---|
 | `raw/` | Source files exactly as downloaded, with their original names. PROFECO CSV files at the top level; BIT files in `raw/bit/baf/` (broadband) and `raw/bit/tf/` (telephony) | No |
 | `interim/` | Intermediate files, if any are needed | No |
-| `reference/` | Small files created by the project, for example the provider mapping | Yes |
+| `reference/` | Small files created by the project, if any (the provider mapping lives in SQL: `clean.brand_map`) | Yes |
 
 ## Rules
 

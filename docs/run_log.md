@@ -7,7 +7,7 @@ Record of each script execution on the local instance (SQL Server 2025 Express, 
 | 0 | `sql/common/step_0.sql` | 2026-10-25 | Done |
 | 1 | `sql/mx_profeco/step_1.sql` | 2026-10-26 | Done (second attempt, see incident) |
 | 2 | `sql/mx_profeco/step_2.sql` | 2026-10-26 | Done (gate passed on 2026-10-27) |
-| 3 | `sql/mx_profeco/step_3.sql` | 2026-10-27 | Run 1 done (checks 1 to 13); revision 2 done (checks 14 to 16) |
+| 3 | `sql/mx_profeco/step_3.sql` | 2026-10-27 | Run 1 done (checks 1 to 13); revision 2 done (checks 14 to 17) |
 
 ## Step 0: database and schemas
 
