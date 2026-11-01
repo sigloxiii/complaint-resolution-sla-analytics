@@ -32,6 +32,7 @@ sql/
 | 1 | `mx_profeco/step_1.sql` | Load the raw PROFECO complaints CSV into `stg.profeco_raw` |
 | 2 | `mx_profeco/step_2.sql` | Feasibility gate profiling (read-only queries) |
 | 3 | `mx_profeco/step_3.sql` | Clean layer: `clean.profeco_complaint`, brand and state lookup tables, quality flags |
+| 4 | `mx_profeco/step_4.sql` | Overlap audit of the five PROFECO cuts (decision D4); audit tables in `stg`, read-only for the pipeline |
 
 ## Requirements
 

@@ -409,3 +409,38 @@ Image names follow the pattern `step_3_check_<NN>.png`; a check with two result 
 - **State is the PROFECO office, not where the consumer lives (decision D8).** The Internet channel (55% of the cases) is 99.3% Ciudad de México, and the case IDs show why: office `H` handles about 19,700 cases centrally, all in Ciudad de México, while the other offices match one state each (for example YUC is Yucatán; ODF, CDF, VIL and PDF are Ciudad de México; NEZ, TLA and MEX are Estado de México; TOR is Coahuila; CDJ is Chihuahua). Tlaxcala has no complaints because there is no office with that code. So 62% of Ciudad de México is a result of central handling.
 - **Amounts are not reliable for KPIs (decision D9).** `monto_reclamado` is 0 in 78% of the rows, and the recovered amount is larger than the claimed one in 24%. In the 10 biggest differences the claimed amount is 0.00, and one row looks like a typing error (claimed 18,480.00, recovered 184,480.00). The amounts stay as loaded and are used only as descriptive information.
 - **Duration.** The first look is plausible: 0 to 1,014 days, with an average of about 68 days for the conciliation procedure. It is a sanity check, not a project result (closed cases only, see right-censoring).
+
+## Overlap audit of the five cuts (`step_4.sql`, 2026-10-31)
+
+Evidence: `step_4_check_01.png` to `step_4_check_06.png` (checks 4.1 to 4.6). The cuts are compared with the base file `junio_2026` by case ID (`expediente`, exact comparison).
+
+| Check | Result | Evidence |
+|---|---|---|
+| 4.1 Rows and distinct IDs | Base 36,034 / 36,034. `2022_2025`: 32,961 rows but 31,973 distinct IDs (988 repeated). `may_2026`: 4,081 rows, 4,067 distinct (14 repeated). `ene_2026` 32,652 and `jul2026` 31,926: all unique. No empty IDs | ![4.1](../img/step_4_check_01.png) |
+| 4.2 Date range | All dates convert (0 bad). Max close: `2022_2025` 2025-11-30, `ene_2026` 2026-01-30, base and `may_2026` 2026-05-29, `jul2026` 2026-07-31. Empty close dates: 74 / 68 / 64 / 66 (base) / 0 (`may_2026`). `may_2026` starts in 2025-01 (partial slice) | ![4.2](../img/step_4_check_02.png) |
+| 4.3 Overlap | `2022_2025`, `ene_2026` and `may_2026`: **every case is in the base** (0 only in the cut). `jul2026`: 29,966 in the base, **1,960 only in the cut**, and the base has 6,068 cases that `jul2026` lacks | ![4.3](../img/step_4_check_03.png) |
+| 4.4 Exact differences | Dates differ in 100% of the rows of `2022_2025` and `ene_2026` (format, see below). `jul2026` differs in `tipo_conciliacion` (887), `odeco` (3,422), `procedimiento` (4,064) and in both amounts (about 96% of the rows) | ![4.4](../img/step_4_check_04.png) |
+| 4.5 Ignoring case and accents | `jul2026`: `tipo_conciliacion`, `odeco`, `estado` and `procedimiento` drop to 0 (capitalization only). Still different: `proveedor` 487, `nombre_comercial` 5, amounts 28,645 and 27,197. `ene_2026`: `odeco` 529 and `monto_recuperado` 1,479 remain | ![4.5](../img/step_4_check_05.png) |
+| 4.6 Cases not in the base | All 1,960 cases of `jul2026` are closed in June 2026 (1,008) or July 2026 (952), after the end of the base (2026-05-29) | ![4.6](../img/step_4_check_06.png) |
+
+What the results say:
+
+- **The base contains every case of the three older cuts.** Their cases add nothing to it, and `2022_2025` and `may_2026` have repeated IDs, so they fail the integrity criterion. This supports D4.
+- **The dates differ only in format.** `2022_2025` and `ene_2026` write `2025/02/18`; the base and the other cuts write `2025-02-18`. The follow-up check 4.7 compares them as dates.
+- **`jul2026` is a newer publication, not a corrected version of the base.** It adds 1,960 cases closed in June and July 2026, but lacks 6,068 base cases (check 4.8 looks at which ones), and it capitalizes names differently.
+- **Amounts differ in text** in `jul2026` and `may_2026` (check 4.10d), which is another reason not to rely on them (D9).
+- Follow-up checks 4.7 to 4.11 (dates as dates, missing cases, repeated IDs, sample of the differing values) are in `step_4.sql`; their results are below.
+
+### Follow-up checks (4.7 to 4.10)
+
+Evidence: `step_4_check_07.png`, `step_4_check_08.png`, `step_4_check_09.png`, `step_4_check_10a_c.png` (4.10a to 4.10c) and `step_4_check_10d_e.png` (4.10d and 4.10e).
+
+| Check | Result | Evidence |
+|---|---|---|
+| 4.7 Dates as dates | Filing date: **0 differences** in every cut. Close date: 50 cases in `2022_2025` (0.15%), 6 in `ene_2026`, 3 in `jul2026`, 0 in `may_2026` | ![4.7](../img/step_4_check_07.png) |
+| 4.8 Base cases missing in `jul2026` | 6,067 of the 6,068 were filed in **2025**, in every outcome (Conciliada 3,380; Desistimiento 2,059; No Conciliada 532; Improcedente 95). `jul2026` leaves out part of the 2025 filings, so it is not a superset of the base | ![4.8](../img/step_4_check_08.png) |
+| 4.9 Repeated IDs | `2022_2025`: 958 IDs in 1,946 rows, **932 with conflicting rows** and 26 exact copies. `may_2026`: 14 IDs, all exact copies | ![4.9](../img/step_4_check_09.png) |
+| 4.10a to c | Brand differences in `2022_2025` are swaps between brands (Telcel with Samsung, Motorola, Zte, At&t...): the second row of a repeated ID. In `ene_2026` the office `H` is called "Dir. Gral. Cons. Telecom" and in the base "Dgpct" (526 cases; the two names are already known). In `jul2026` the provider names differ in punctuation ("S. de R.L. de C.V." and "C.V") | ![4.10a-c](../img/step_4_check_10a_c.png) |
+| 4.10d and e | Amounts differ only in format: `0` and `0.0`, `100` and `100.0` (`jul2026`); the base has `-` where `ene_2026` has an empty value (1,479). No real difference of value | ![4.10d-e](../img/step_4_check_10d_e.png) |
+
+Reading: dates, amounts and names agree once the format is ignored. The two real findings are that `jul2026` omits part of the 2025 filings, and that the older cut repeats some IDs with a second provider. Check 4.11 measures whether that second row affects the four fixed operators.
