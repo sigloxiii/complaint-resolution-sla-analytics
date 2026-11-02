@@ -35,6 +35,7 @@ sql/
 | 3 | `mx_profeco/step_3.sql` | Clean layer: `clean.profeco_complaint`, brand and state lookup tables, quality flags |
 | 4 | `mx_profeco/step_4.sql` | Overlap audit of the five PROFECO cuts (decision D4); audit tables in `stg`, read-only for the pipeline |
 | 5 | `mx_bit/step_5.sql` | Load the BIT fixed broadband accesses (`TD_ACC_BAF_ITE_VA`) into `stg.bit_acc_baf` |
+| 6 | `mx_bit/step_6.sql` | Clean layer of the BIT: `clean.bit_access` (types, date, state code, operator, flags) |
 
 ## Requirements
 

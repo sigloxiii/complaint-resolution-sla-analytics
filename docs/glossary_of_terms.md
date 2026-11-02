@@ -29,6 +29,7 @@ Technical terms used in this project, in the order in which they became relevant
   ```
 
 - **How to handle it:** tell `BULK INSERT` which terminator the file uses: `ROWTERMINATOR = '0x0a'` for LF, or leave it out for CR+LF.
+- **Where it mattered again:** the BIT file (`TD_ACC_BAF_ITE_VA.csv`) uses CR+LF, so `step_5.sql` sets `ROWTERMINATOR = '0x0d0a'`.
 - **Rule for this project:** raw files are never edited, so the script adapts to the file, not the other way around.
 
 ### CSV (comma-separated values)
@@ -41,6 +42,12 @@ Technical terms used in this project, in the order in which they became relevant
 
 - **What it is:** UTF-8 is a text encoding that represents accents and characters such as *ñ*. A *code page* is the number SQL Server uses to name an encoding; UTF-8 is `65001`.
 - **Where it mattered here:** `CODEPAGE = '65001'` in `step_1.sql`, so that *México* and *Telefonía* load without damaged characters.
+
+### Code page 1252 (Windows Latin 1)
+
+- **What it is:** an older encoding that uses one byte per character and covers Western European accents. It is the code page that SQL Server names `1252`.
+- **How it differs from UTF-8:** the same accented letter is stored with different bytes. Reading a 1252 file as UTF-8 (or the reverse) shows damaged characters such as `Ã©` instead of `é`.
+- **Where it mattered here:** the PROFECO file is UTF-8 (`CODEPAGE = '65001'`) and the BIT file is 1252 (`CODEPAGE = '1252'`). Check 5.3 confirmed that the accents of the BIT load correctly.
 
 ## SQL Server
 
@@ -87,6 +94,16 @@ Technical terms used in this project, in the order in which they became relevant
 - **What it is:** a number the project assigns to each row, with no meaning of its own, used as its identifier.
 - **Where it is used:** `complaint_key` in `clean.profeco_complaint`. `case_id` cannot be the key because 2 case IDs appear for two providers each (4 rows).
 
+### Window function and ROW_NUMBER
+
+- **What it is:** a function that calculates a value for each row looking at a group of rows, without collapsing them into one row as `GROUP BY` does. `ROW_NUMBER() OVER (PARTITION BY ... ORDER BY ...)` numbers the rows inside each group.
+- **Where it is used:** `step_6.sql` numbers the rows of each group of identical rows; the number 2 or higher marks a surplus copy (`flag_exact_copy`). The surrogate keys (`complaint_key`, `access_key`) are also built with `ROW_NUMBER()`.
+
+### Anti-join
+
+- **What it is:** a query that returns the rows of one table that have **no** match in another, for example `LEFT JOIN ... WHERE right.key IS NULL`.
+- **Where it was used:** the overlap audit of the five PROFECO cuts (`step_4.sql`, decision D4) looked for cases of the older cuts that are missing in the base cut. The result was none.
+
 ## Data architecture
 
 ### Staging (`stg`) and raw layer
@@ -115,3 +132,41 @@ Technical terms used in this project, in the order in which they became relevant
 
 - **What it is:** a bias that appears when only finished cases are in the data, so the cases that are still open (the slowest ones) are missing.
 - **Where it matters here:** the file contains closed cases only, so resolution times can look shorter than reality.
+
+### Grain
+
+- **What it is:** what one row of a table represents (for example "one complaint" or "one operator group, in one state, in one month").
+- **Why it matters:** if the grain is not known, a sum can count the same thing twice. It is checked by counting how many rows share the same key.
+- **Where it mattered here:** in the BIT, year, month, state, municipality, technology and company do not identify one row: 36,562 keys repeat. The rows turned out to be separate records and are all added (decision D12).
+
+### Repeated key and exact copy
+
+- **Repeated key:** several rows with the same values in the columns chosen as the key. They can be different records.
+- **Exact copy:** rows identical in **all** columns, accesses included. They can be the same record loaded twice, or a coincidence between small values.
+- **In this project:** 325 groups of exact copies in the BIT (0.05% of the rows). They are kept and flagged, and their weight in December 2024 is 0.0009% (decision D12).
+
+### Flag
+
+- **What it is:** a column with value 1 or 0 that marks a row for a condition without deleting it.
+- **Where it is used:** `flag_missing_accesses`, `flag_no_state`, `flag_no_municipality` and `flag_exact_copy` in `clean.bit_access`, and `flag_central_office` in `clean.profeco_complaint`. Analyses can include or exclude the marked rows.
+
+### Sentinel code
+
+- **What it is:** a code that stands for "no information" inside a column that normally holds real codes.
+- **In the BIT:** state `99` and municipality `999`. They are kept and flagged, and are left out of the rates by state.
+
+### Stock and flow
+
+- **Stock:** an amount measured at one moment (accesses at the end of a month). Adding two months counts the same accesses twice.
+- **Flow:** an amount that happens during a period (complaints filed in a month). It can be added across months.
+- **Where it matters here:** `A_TOTAL_E` of the BIT is a stock, so the denominators use December of each year and never add months.
+
+### Access (BIT) and subscription
+
+- **What it is:** the BIT counts **accesses** to fixed broadband service reported by each provider. It is not a count of customers or subscriptions, and one customer can hold more than one access.
+- **In this project:** "accesses" is the term used in the tables, the dashboard and the documents.
+
+### Denominator and rate per 100,000 accesses
+
+- **What it is:** a rate divides a count (complaints) by a base (accesses) so providers of different size can be compared. The base is the denominator, and the result is multiplied by 100,000 to read it as "complaints per 100,000 accesses".
+- **Where it is used:** the denominators are the accesses of Telmex, Izzi, Megacable and Total Play at the end of December. The BIT file ends in December 2024, so the rates cover 2022 to 2024.

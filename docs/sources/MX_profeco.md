@@ -480,7 +480,7 @@ Evidence: `step_6_check_01p1.png` to `step_6_check_09.png`. Table `clean.bit_acc
 | Check | Result | Evidence |
 |---|---|---|
 | 6.1 Technologies | Eight technologies. In December 2024 the four groups have fiber, DSL, coaxial cable and "Sin tecnología especificada"; "Tecnología móvil" (349,879) is only in Grupo Televisa (Sky) | ![6.1a](../img/step_6_check_01p1.png) ![6.1b](../img/step_6_check_01p2.png) |
-| 6.2a, 6.2b Grain | 36,562 repeated keys (year, month, state, municipality, technology, company); 0 accesses with decimals | ![6.2a](../img/step_6_check_02p0.png) |
+| 6.2a, 6.2b Grain | 36,562 repeated keys (year, month, state, municipality, technology, company); 0 accesses with decimals | ![6.2a](../img/step_6_check_02.png) |
 | 6.2c Folio | Adding the folio leaves 35,887 repeated keys: the folio does not separate the rows | ![6.2c](../img/step_6_check_02p1.png) |
 | 6.2d Exact copies | 325 groups of rows identical in the 16 columns, 325 surplus rows (0.05%) | ![6.2d](../img/step_6_check_02p2.png) |
 | 6.2e December 2024 | 3,303 repeated keys in the four groups, 6,632 rows | ![6.2e](../img/step_6_check_02p3.png) |
