@@ -15,6 +15,8 @@ Each entry records the context, the options considered, the decision and the rea
 | D9 | Amounts are descriptive only | Accepted |
 | D10 | What may be published | Accepted (documented risk) |
 | D11 | Provider scope: four large fixed operators, the rest as Other | Accepted |
+| D12 | Grain of the BIT: keep every row, flag exact copies | Accepted |
+| D13 | No technology filter in the BIT denominators | Accepted |
 
 ---
 
@@ -244,3 +246,34 @@ Each entry records the context, the options considered, the decision and the rea
   - C. Analyse the four operators and group all the others as **Other** in the dashboard.
 - **Decision:** C. Provider-level metrics (median and P90 of days to close, conciliation rate, rates per 100,000 accesses) are shown for the four operators. The remaining fixed brands appear as **Other** in the volume and trend views. Mobile brands, pay TV, device makers and unidentified brands stay in `clean` and are outside the dashboard scope (fixed broadband only).
 - **Revisit if:** a small operator reaches 100 complaints per year, or the BIT publishes its own group.
+
+---
+
+## D12. Grain of the BIT: keep every row, flag exact copies
+
+- **Status:** Accepted
+- **Date:** 2026-11-01
+- **Context:** The BIT file is not unique per year, month, state, municipality, technology and company: 36,562 keys repeat (6.2a). Adding the folio leaves 35,887 (6.2c). Only 325 groups of rows are identical in all 16 columns (6.2d, 0.05% of 592,281). In December 2024, 3,303 keys of the four groups repeat (6,632 rows, 6.2e), with the same concessionaire and technology but very different accesses (for example 1,105 and 69,186, 6.2f).
+- **Reading:** the repeated rows look like separate records of a dimension that is not in the file (hypothesis: segment or speed range). It is a hypothesis, not a fact; the file has no column that proves it.
+- **Options:**
+  - A. Remove repeated keys, keeping one row. Rejected: it would delete real accesses (the large row of each pair).
+  - B. Remove only the 325 exact copies. Rejected: identical small values can be coincidences between two segments; removing them is a guess.
+  - C. Keep and add every row, flag the 325 surplus copies (`flag_exact_copy`) and measure their weight (6.2h).
+- **Evidence of the decision:** November 2024 has 3,268 repeated keys (6,555 rows) against 3,303 (6,632 rows) in December, so the repetition is stable across months (6.2g). The surplus copies hold 106 accesses in December 2024, all in AMÉRICA MÓVIL: 0.0009% of its 11,208,977 and 0% in the other three groups (6.2h).
+- **Decision:** C. The denominators add all rows; the flag allows a sensitivity check.
+- **Revisit if:** 6.2h shows the surplus copies weigh 0.1% or more of a denominator, or the CRT documents the missing dimension.
+
+---
+
+## D13. No technology filter in the BIT denominators
+
+- **Status:** Accepted
+- **Date:** 2026-11-01
+- **Context:** The BIT table has eight access technologies, including mobile, satellite and fixed wireless. The denominators of the rates per 100,000 accesses must be fixed broadband of the four operators.
+- **Evidence (checks 6.1b and 6.6b):** in December of 2022 to 2024 the four operators have only fiber, DSL, coaxial cable and "Sin tecnología especificada". The only mobile technology in the four groups (349,879 accesses in December 2024) belongs to Sky, which is already outside Izzi. In Megacable, 100% of the December 2022 accesses (4,144,809) are "Sin tecnología especificada"; the share falls to 5.7% in 2023 (263,947) and 0.6% in 2024 (32,681).
+- **Options:**
+  - A. Keep only the known fixed technologies (fiber, DSL, coaxial). Rejected: it would leave Megacable with no denominator in 2022 and a partial one in 2023.
+  - B. Use all rows of the four operators, with Sky outside Izzi (join rule of D11).
+- **Decision:** B. No technology filter. The operator rule already removes the only non-fixed technology.
+- **Limitation:** the unspecified share of Megacable changes the technology mix across years, so technology breakdowns by operator are not published for Megacable before 2024.
+- **Revisit if:** a mobile or satellite technology appears in the four operators when the BIT is updated.

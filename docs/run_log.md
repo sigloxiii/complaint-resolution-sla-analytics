@@ -10,6 +10,7 @@ Record of each script execution on the local instance (SQL Server 2025 Express, 
 | 3 | `sql/mx_profeco/step_3.sql` | 2026-10-27 | Run 1 done (checks 1 to 13); revision 2 done (checks 14 to 17) |
 | 4 | `sql/mx_profeco/step_4.sql` | 2026-10-31 | Done (checks 4.1 to 4.11); D4 accepted |
 | 5 | `sql/mx_bit/step_5.sql` | 2026-11-01 | Done (592,281 rows loaded; checks 5.0 to 5.8) |
+| 6 | `sql/mx_bit/step_6.sql` | 2026-11-01 | Done (`clean.bit_access`, 592,281 rows; checks 6.1 to 6.6b); D12 and D13 accepted |
 
 ## Step 0: database and schemas
 
@@ -119,3 +120,12 @@ Loads `TD_ACC_BAF_ITE_VA.csv` (downloaded 2026-10-26) into `stg.bit_acc_baf` as 
 - **Checks:** years 2013 to 2024 and months 1 to 12; no bad year, month or state; December 2024 matches the Excel pivots (the four groups 27,809,589); 33 state codes; the companies of each group reproduce the pivots.
 - **Corrections to the checks:** 5.3 used a collation that ignores accents, so every row looked "broken" (fixed with a binary collation, result 0); 5.6 did not filter by group, so it showed 1,051,366 accesses without state for all operators (35,990 for the four groups, as expected).
 - **Missing accesses (5.8):** 1,831 rows (0.31%) have an empty `a_total_e` (NULL, not text). 1,462 belong to the four groups, mainly 2015 to 2016 and 2020 (804 rows). In the period of the rates there are 33 rows in 2022, 12 in 2023 and none in 2024.
+
+## Step 6: BIT clean layer (`sql/mx_bit/step_6.sql`, 2026-11-01)
+
+Builds `clean.bit_access` from `stg.bit_acc_baf`: types, date, state code and name, operator of each row and flags. No row is deleted. Evidence: `step_6_check_01p1.png` to `step_6_check_09.png`; the results are in `docs/sources/MX_profeco.md`.
+
+- **Grain:** the first run of check 6.2a gave 36,562 repeated keys (expected 0). Checks 6.2c to 6.2h showed that the repeated rows are mostly different records (same concessionaire and technology, very different accesses), that only 325 rows are exact copies, and that the repetition is the same in November and December 2024. All rows are kept and the copies are flagged (D12).
+- **Technology:** no filter in the denominators (D13).
+- **Result:** 592,281 rows, 1,831 with missing accesses, 9,078 without state, 13,247 without municipality, 325 exact copies, 0 without date. December 2024 reproduces the totals of step 5.
+- **Script changes while running it:** the old blocks 6.2c to 6.2f were replaced by 6.2c to 6.2h, column `flag_exact_copy` added to 6.4, and the technology check of the four operators renamed 6.6b.

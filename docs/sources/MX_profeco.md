@@ -472,3 +472,43 @@ What the results say:
 - The empty accesses (0.31% of the rows) stay empty in the clean layer, they are not turned into 0. They are flagged. December 2024, the base of the rates, has none in the four groups.
 - **Open question for the clean layer:** the column `TECNO_ACCESO_INTERNET` has several technologies, one of them "Tecnología móvil", and the December 2024 totals above include all of them. Before using them as the denominator, the technologies must be listed (a check of the next step) and the project must decide if all of them count as fixed broadband accesses.
 - **Do not add months:** `A_TOTAL_E` is a stock at the end of each month (see the section on the BIT).
+
+## Clean layer of the BIT (`step_6.sql`, 2026-11-01)
+
+Evidence: `step_6_check_01p1.png` to `step_6_check_09.png`. Table `clean.bit_access`, 592,281 rows, one per row of the file.
+
+| Check | Result | Evidence |
+|---|---|---|
+| 6.1 Technologies | Eight technologies. In December 2024 the four groups have fiber, DSL, coaxial cable and "Sin tecnología especificada"; "Tecnología móvil" (349,879) is only in Grupo Televisa (Sky) | ![6.1a](../img/step_6_check_01p1.png) ![6.1b](../img/step_6_check_01p2.png) |
+| 6.2a, 6.2b Grain | 36,562 repeated keys (year, month, state, municipality, technology, company); 0 accesses with decimals | ![6.2a](../img/step_6_check_02p0.png) |
+| 6.2c Folio | Adding the folio leaves 35,887 repeated keys: the folio does not separate the rows | ![6.2c](../img/step_6_check_02p1.png) |
+| 6.2d Exact copies | 325 groups of rows identical in the 16 columns, 325 surplus rows (0.05%) | ![6.2d](../img/step_6_check_02p2.png) |
+| 6.2e December 2024 | 3,303 repeated keys in the four groups, 6,632 rows | ![6.2e](../img/step_6_check_02p3.png) |
+| 6.2f Rows | Repeated rows share concessionaire and technology but have very different accesses (for example 1,105 and 69,186) | ![6.2f](../img/step_6_check_02p4.png) |
+| 6.2g November 2024 | 3,268 keys, 6,555 rows: the same as December, so the repetition is stable | ![6.2g](../img/step_6_check_02p5.png) |
+| 6.2h Weight of copies | 106 accesses in AMÉRICA MÓVIL (0.0009%); 0 in the other three groups | ![6.2h](../img/step_6_check_02p6.png) |
+| 6.3 Months | 12 months in every year 2013 to 2024 | ![6.3](../img/step_6_check_03.png) |
+| 6.4 Build | 592,281 rows inserted | ![6.4](../img/step_6_check_04.png) |
+| 6.5a Rows and flags | 592,281 rows; 1,831 missing accesses; 9,078 without state; 13,247 without municipality; 325 exact copies; 0 without date | ![6.5a](../img/step_6_check_05.png) |
+| 6.5b December 2024 | Telmex 11,208,977; Total Play 5,313,779; Izzi 5,619,403; Other (Sky) 350,885; Megacable 5,316,545. Grupo Televisa adds 5,970,288, as in step 5 | ![6.5b](../img/step_6_check_06.png) |
+| 6.5c States | 33 codes; only code 99 is "Not specified" (9,078 rows) | ![6.5c](../img/step_6_check_07.png) |
+| 6.6 Denominators | See the table below | ![6.6](../img/step_6_check_08.png) |
+| 6.6b Technologies | No mobile, satellite or wireless technology in the four operators; Megacable has unspecified technology | ![6.6b](../img/step_6_check_09.png) |
+
+Decisions: D12 (grain) and D13 (no technology filter).
+
+### Denominators: accesses at the end of December
+
+| Operator | 2022 | 2023 | 2024 |
+|---|---|---|---|
+| Telmex | 10,025,387 | 10,488,966 | 11,208,977 |
+| Izzi | 5,966,299 | 5,658,715 | 5,619,403 |
+| Megacable | 4,144,809 | 4,656,004 | 5,316,545 |
+| Total Play | 4,442,665 | 4,775,774 | 5,313,779 |
+
+Notes:
+
+- These are BIT **accesses**, not subscriptions or customers.
+- Megacable's technology is unspecified in 100% of its December 2022 accesses (4,144,809), 5.7% in 2023 and 0.6% in 2024. The growth of Megacable (+28% in two years) can be partly a change in how it reports; the rates are read with that caution.
+- Izzi has one row with missing accesses in December 2022 (technology unspecified). It does not change the sum.
+- Accesses without state (code 99) are 35,990 for the four groups in December 2024 (0.13%) and are left out of the rates by state.
