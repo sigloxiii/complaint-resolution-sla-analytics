@@ -17,6 +17,7 @@ Each entry records the context, the options considered, the decision and the rea
 | D11 | Provider scope: four large fixed operators, the rest as Other | Accepted |
 | D12 | Grain of the BIT: keep every row, flag exact copies | Accepted |
 | D13 | No technology filter in the BIT denominators | Accepted |
+| D14 | Star schema of the mart: two facts, shared operator, state and date | Accepted |
 
 ---
 
@@ -277,3 +278,22 @@ Each entry records the context, the options considered, the decision and the rea
 - **Decision:** B. No technology filter. The operator rule already removes the only non-fixed technology.
 - **Limitation:** the unspecified share of Megacable changes the technology mix across years, so technology breakdowns by operator are not published for Megacable before 2024.
 - **Revisit if:** a mobile or satellite technology appears in the four operators when the BIT is updated.
+
+---
+
+## D14. Star schema of the mart: two facts, shared operator, state and date
+
+- **Status:** Accepted
+- **Date:** 2026-11-05
+- **Context:** Power BI needs complaints (one row per case) and BIT accesses (one row per month, state and operator) in one model, to calculate rates per 100,000 accesses. The two sources do not share a brand-level key: the BIT has accesses by operator group, not by brand.
+- **Options:**
+  - A. One wide table with complaints and accesses together. Rejected: it repeats the accesses on every complaint row and a sum would count them many times.
+  - B. A single provider dimension at brand level (about 190 brands). Rejected: the accesses cannot join it, because the BIT has no brand.
+  - C. Two fact tables that share `dim_operator` (5 rows), `dim_state` and `dim_date`; `dim_brand`, `dim_reason` and `dim_outcome` belong to the complaints only.
+- **Evidence of the decision (checks 7.3a to 7.3f):** no row is lost (36,034 complaints and 592,281 BIT rows reconcile, accesses difference 0), there are no null or orphan keys, and December 2024 reproduces the denominators of step 6.
+- **Decision:** C (`sql/common/step_7.sql`, because the mart is the source-agnostic layer of the repository).
+  - `fact_complaint` has all 36,034 rows, and `dim_brand.in_dashboard_scope` (network type Fixed) selects the dashboard scope (D11). Non-fixed brands stay in the table so the totals reconcile with `clean`.
+  - `fact_accesses` adds the BIT rows by month, state and operator (D12, D13), with the number of source rows, missing rows and exact copies.
+  - Rates use the filing year of the complaint and the December accesses of that year. They are calculated at national level only, because the complaint state is the PROFECO office (D8).
+  - Service type (`service_hint`, D7), amounts (D9) and the channel stay as columns of the fact, not as dimensions.
+- **Revisit if:** the numerator needs a service filter (check 7.3g) or a second source is added with a different grain.

@@ -11,6 +11,7 @@ Record of each script execution on the local instance (SQL Server 2025 Express, 
 | 4 | `sql/mx_profeco/step_4.sql` | 2026-10-31 | Done (checks 4.1 to 4.11); D4 accepted |
 | 5 | `sql/mx_bit/step_5.sql` | 2026-11-01 | Done (592,281 rows loaded; checks 5.0 to 5.8) |
 | 6 | `sql/mx_bit/step_6.sql` | 2026-11-01 | Done (`clean.bit_access`, 592,281 rows; checks 6.1 to 6.6b); D12 and D13 accepted |
+| 7 | `sql/common/step_7.sql` | 2026-11-05 | Done (mart: 6 dimensions, 2 facts; checks 7.3a to 7.3f); D14 accepted |
 
 ## Step 0: database and schemas
 
@@ -129,3 +130,33 @@ Builds `clean.bit_access` from `stg.bit_acc_baf`: types, date, state code and na
 - **Technology:** no filter in the denominators (D13).
 - **Result:** 592,281 rows, 1,831 with missing accesses, 9,078 without state, 13,247 without municipality, 325 exact copies, 0 without date. December 2024 reproduces the totals of step 5.
 - **Script changes while running it:** the old blocks 6.2c to 6.2f were replaced by 6.2c to 6.2h, column `flag_exact_copy` added to 6.4, and the technology check of the four operators renamed 6.6b.
+
+## Step 7: mart layer (`sql/common/step_7.sql`, 2026-11-05)
+
+Builds the star schema in `mart` from `clean.profeco_complaint` and `clean.bit_access` (decision D14). Evidence: `step_7_check_01.png` to `step_7_check_07.png`.
+
+| Check | Result | Evidence |
+|---|---|---|
+| 7.0 to 7.2 Build | Rows inserted: `dim_date` 5,113; `dim_state` 33; `dim_operator` 5; `dim_brand` 190; `dim_reason` 176; `dim_outcome` 39; `fact_complaint` 36,034; `fact_accesses` 19,840. The two warnings are NULL values ignored by `MAX` and `SUM` (empty accesses and unmapped groups) | ![7.0](img/step_7_check_01.png) |
+| 7.3a Rows | Same counts as the messages | ![7.3a](img/step_7_check_02.png) |
+| 7.3b Reconciliation | Complaints 36,034 in `clean` and `mart`; BIT rows 592,281 in both; difference in accesses 0 | ![7.3b](img/step_7_check_03.png) |
+| 7.3c December 2024 | Telmex 11,208,977; Izzi 5,619,403; Megacable 5,316,545; Total Play 5,313,779 (as in 6.5b); Other 1,544,536 | ![7.3c](img/step_7_check_04.png) |
+| 7.3d Keys | 0 complaints without filing date key; 66 without close date key, the same 66 as `flag_missing_close`; 0 orphan brands | ![7.3d](img/step_7_check_05.png) |
+| 7.3e Complaints by filing year | The file has no filing year before 2022. Fixed broadband totals: 2022 4,101; 2023 2,965; 2024 2,591; 2025 2,959; 2026 742 (partial year) | ![7.3e](img/step_7_check_06.png) |
+| 7.3f Rate per 100,000 accesses | See the table below | ![7.3f](img/step_7_check_07.png) |
+
+Preview of the rates (complaints filed in the year, fixed broadband brands, divided by the accesses of December; national level):
+
+| Operator | 2022 | 2023 | 2024 |
+|---|---|---|---|
+| Telmex | 8.61 | 5.02 | 3.68 |
+| Izzi | 15.25 | 16.01 | 14.08 |
+| Megacable | 33.20 | 18.38 | 14.67 |
+| Total Play | 20.96 | 13.74 | 10.90 |
+
+Notes:
+
+- The values were recalculated by hand from the counts and denominators of the checks and match.
+- The numerator is every complaint of the brand, while the denominator is fixed broadband accesses only. If a brand has complaints about other services (for example mobile), its rate is overstated. Check 7.3g (pending) reads `service_hint` by operator to measure it.
+- Megacable's 2022 rate is the least comparable: its denominator has no technology in December 2022 and grows 28% in two years (see D13).
+- Total Play has 1,017 complaints filed in 2025 against 579 in 2024. There are no BIT accesses for 2025, so it has no rate.

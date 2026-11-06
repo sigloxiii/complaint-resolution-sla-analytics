@@ -4,7 +4,7 @@
 
 > SQL Server + Power BI analysis of complaint resolution times against service-level targets, by responsible party and region, built on open government data. Source-agnostic star schema with per-source ingestion adapters.
 
-![License](https://img.shields.io/badge/License-MIT-yellow) ![Data](https://img.shields.io/badge/Data-PROFECO_%2B_BIT_M%C3%A9xico-blue) ![Status](https://img.shields.io/badge/Status-Phase_3_denominators-blue)
+![License](https://img.shields.io/badge/License-MIT-yellow) ![Data](https://img.shields.io/badge/Data-PROFECO_%2B_BIT_M%C3%A9xico-blue) ![Status](https://img.shields.io/badge/Status-Phase_5_Power_BI-blue)
 
 ---
 
@@ -87,18 +87,18 @@ The pipeline stages above describe how the data flow. The project phases below d
 | 0 | Repository scaffold and feasibility gate on the Mexican dataset | Done (4 of 4 criteria passed, decision D1) |
 | 1 | Create database and schemas; load raw data into `stg` | Done (`step_0` and `step_1`) |
 | 2 | Clean and normalize: types, durations, provider mapping | Done (`step_3`, revision 2; the state is the PROFECO office, see D8) |
-| 3 | Load denominators (BIT accesses) and build dimensions | In progress (BIT loaded into `stg`, `step_5`) |
-| 4 | Build the `mart` star schema; SQL validation queries | Pending |
+| 3 | Load denominators (BIT accesses) and build dimensions | Done (`step_5`, `step_6`; D12 and D13) |
+| 4 | Build the `mart` star schema; SQL validation queries | Done (`step_7`, checks 7.3a to 7.3f; D14) |
 | 5 | Power BI model, DAX measures and report | Pending |
 | 6 | Documentation, findings and limitations | Pending |
 
-**Planned star schema:** `fact_complaint` (one row per case), `fact_accesses` (operator group × state × month), `dim_provider`, `dim_state`, `dim_reason`, `dim_date`.
+**Star schema (`mart`):** `fact_complaint` (one row per case) and `fact_accesses` (operator × state × month) share `dim_operator`, `dim_state` and `dim_date`; `dim_brand`, `dim_reason` and `dim_outcome` describe the complaints (decision D14).
 
 ---
 
 ## Initial dataset exploration: México
 
-Desk research on the candidate sources is complete, and the five PROFECO files were downloaded and inspected in Power Query. The base file (36,034 rows) was loaded into SQL Server and profiled with `step_2.sql`: the four criteria of the feasibility gate are met (decision D1, accepted on 2026-10-27). BIT gives fixed broadband accesses by operator group and state up to December 2024, so rates per 100,000 accesses are limited to 2022 to 2024. The evidence and the details of each file are in [`docs/sources/MX_profeco.md`](docs/sources/MX_profeco.md).
+Desk research on the candidate sources is complete, and the five PROFECO files were downloaded and inspected in Power Query. The base file (36,034 rows) was loaded into SQL Server and profiled with `step_2.sql`: the four criteria of the feasibility gate are met (decision D1, accepted on 2026-10-27). BIT gives fixed broadband accesses by operator group and state up to December 2024, so rates per 100,000 accesses are limited to 2022 to 2024. The BIT table was cleaned into `clean.bit_access` (592,281 rows, one operator label per row), and the December accesses of Telmex, Izzi, Megacable and Total Play are the denominators. The evidence and the details of each file are in [`docs/sources/MX_profeco.md`](docs/sources/MX_profeco.md).
 
 ### Candidate sources
 
@@ -191,12 +191,12 @@ data/
   interim/         # intermediate files (not versioned)
   reference/       # small seed files, if any (the provider mapping lives in SQL: clean.brand_map)
 sql/
-  common/          # source-agnostic: database, schemas, mart, views
+  common/          # source-agnostic: database, schemas, mart (step_7), views
   mx_profeco/      # PROFECO complaints: load, audit and clean (stg → clean)
   mx_bit/          # BIT accesses: load and clean (stg → clean)
 powerbi/           # .pbix and PDF report
 docs/
-  decisions.md     # decision log (D1 to D11)
+  decisions.md     # decision log (D1 to D13)
   run_log.md       # script runs and their evidence
   glossary_of_terms.md
   sources/         # one note per data source, and licenses.md

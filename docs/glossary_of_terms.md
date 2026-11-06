@@ -170,3 +170,19 @@ Technical terms used in this project, in the order in which they became relevant
 
 - **What it is:** a rate divides a count (complaints) by a base (accesses) so providers of different size can be compared. The base is the denominator, and the result is multiplied by 100,000 to read it as "complaints per 100,000 accesses".
 - **Where it is used:** the denominators are the accesses of Telmex, Izzi, Megacable and Total Play at the end of December. The BIT file ends in December 2024, so the rates cover 2022 to 2024.
+
+### Star schema, fact table and dimension table
+
+- **What it is:** a way of organizing data for analysis. A **fact table** has one row per event or measurement (a complaint, the accesses of a month) with numbers to add or count. A **dimension table** describes the context of the facts (date, state, operator). The fact table points to each dimension by a key, and the picture looks like a star.
+- **Why it is used:** Power BI filters the facts through the dimensions, so a chart by operator or by year needs no extra logic.
+- **In this project:** `fact_complaint` and `fact_accesses` in the `mart` schema, with six dimensions (decision D14).
+
+### Conformed dimension
+
+- **What it is:** one dimension shared by several fact tables, so their numbers can be put side by side.
+- **Where it is used:** `dim_operator`, `dim_state` and `dim_date` are shared by complaints and accesses. That is what allows dividing complaints by accesses for the same operator and year. `dim_brand` is not shared because the BIT has no brand.
+
+### Foreign key
+
+- **What it is:** a column that holds the key of a row of another table (for example `operator_key` in `fact_complaint`). The database rejects a value that does not exist in that table.
+- **Where it is used:** all the keys of the two fact tables, so there are no orphan rows (check 7.3d).
