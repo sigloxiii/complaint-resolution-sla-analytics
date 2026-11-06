@@ -133,7 +133,7 @@ Builds `clean.bit_access` from `stg.bit_acc_baf`: types, date, state code and na
 
 ## Step 7: mart layer (`sql/common/step_7.sql`, 2026-11-05)
 
-Builds the star schema in `mart` from `clean.profeco_complaint` and `clean.bit_access` (decision D14). Evidence: `step_7_check_01.png` to `step_7_check_07.png`.
+Builds the star schema in `mart` from `clean.profeco_complaint` and `clean.bit_access` (decision D14). Evidence: `step_7_check_01.png` to `step_7_check_08.png`.
 
 | Check | Result | Evidence |
 |---|---|---|
@@ -144,6 +144,7 @@ Builds the star schema in `mart` from `clean.profeco_complaint` and `clean.bit_a
 | 7.3d Keys | 0 complaints without filing date key; 66 without close date key, the same 66 as `flag_missing_close`; 0 orphan brands | ![7.3d](img/step_7_check_05.png) |
 | 7.3e Complaints by filing year | The file has no filing year before 2022. Fixed broadband totals: 2022 4,101; 2023 2,965; 2024 2,591; 2025 2,959; 2026 742 (partial year) | ![7.3e](img/step_7_check_06.png) |
 | 7.3f Rate per 100,000 accesses | See the table below | ![7.3f](img/step_7_check_07.png) |
+| 7.3g Service hint by operator | Fixed brands filed 2022 to 2024: 9,588 complaints (Telmex 1,803; Izzi 2,607; Megacable 3,012; Total Play 2,166; the counts match 7.3e). "Not specified" is 98.8%, 89.4%, 75.3% and 78.9%. Mobile telephony: 14 complaints (0.15%). Where the hint exists, Megacable has 513 Internet against 221 Television or Telephony, and Izzi 125 against 143 | ![7.3g](img/step_7_check_08.png) |
 
 Preview of the rates (complaints filed in the year, fixed broadband brands, divided by the accesses of December; national level):
 
@@ -157,6 +158,6 @@ Preview of the rates (complaints filed in the year, fixed broadband brands, divi
 Notes:
 
 - The values were recalculated by hand from the counts and denominators of the checks and match.
-- The numerator is every complaint of the brand, while the denominator is fixed broadband accesses only. If a brand has complaints about other services (for example mobile), its rate is overstated. Check 7.3g (pending) reads `service_hint` by operator to measure it.
+- The numerator is every complaint of the brand, while the denominator is fixed broadband accesses only. Check 7.3g shows almost no mobile complaints (14 of 9,588), so no filter is needed, but the complaints include television and fixed telephony. The rate is read as **complaints about the fixed services of the operator per 100,000 of its broadband accesses**, with the broadband accesses as a proxy of its customer base. The hint covers only 1% to 25% of the rows, so the share of other services cannot be measured.
 - Megacable's 2022 rate is the least comparable: its denominator has no technology in December 2022 and grows 28% in two years (see D13).
 - Total Play has 1,017 complaints filed in 2025 against 579 in 2024. There are no BIT accesses for 2025, so it has no rate.

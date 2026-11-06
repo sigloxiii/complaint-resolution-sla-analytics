@@ -340,4 +340,19 @@ JOIN   a ON a.year_num = c.year_num AND a.operator_key = c.operator_key
 JOIN   mart.dim_operator AS o ON o.operator_key = c.operator_key
 WHERE  o.is_main_operator = 1 AND c.year_num BETWEEN 2022 AND 2024
 ORDER BY c.year_num, o.sort_order;
+
+-- 7.3g: service hint of the complaints by operator (fixed brands, filed 2022 to 2024).
+--       It tells if the numerator of the rates holds complaints about services other
+--       than internet. The hint comes from problema_especial and covers only part of
+--       the rows (D7), so it is a warning light, not a filter.
+--       First run (2026-11-05): "Not specified" is 98.8% of Telmex, 89.4% of Izzi,
+--       75.3% of Megacable and 78.9% of Total Play. Mobile telephony: 14 of 9,588.
+SELECT o.operator_name, f.service_hint, COUNT(*) AS complaints
+FROM   mart.fact_complaint AS f
+JOIN   mart.dim_operator   AS o ON o.operator_key = f.operator_key
+JOIN   mart.dim_brand      AS b ON b.brand_key    = f.brand_key
+JOIN   mart.dim_date       AS d ON d.date_key     = f.filing_date_key
+WHERE  b.in_dashboard_scope = 1 AND d.year_num BETWEEN 2022 AND 2024
+GROUP BY o.operator_name, o.sort_order, f.service_hint
+ORDER BY o.sort_order, complaints DESC;
 -- =====================================================================

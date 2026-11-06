@@ -296,4 +296,5 @@ Each entry records the context, the options considered, the decision and the rea
   - `fact_accesses` adds the BIT rows by month, state and operator (D12, D13), with the number of source rows, missing rows and exact copies.
   - Rates use the filing year of the complaint and the December accesses of that year. They are calculated at national level only, because the complaint state is the PROFECO office (D8).
   - Service type (`service_hint`, D7), amounts (D9) and the channel stay as columns of the fact, not as dimensions.
-- **Revisit if:** the numerator needs a service filter (check 7.3g) or a second source is added with a different grain.
+- **Numerator and denominator (check 7.3g):** only 14 of the 9,588 fixed-brand complaints of 2022 to 2024 name mobile telephony, so no service filter is applied. The complaints include television and fixed telephony, and the hint covers only 1% to 25% of the rows (D7), so the metric is defined as complaints about the fixed services of the operator per 100,000 of its broadband accesses. Telmex is the most affected by this definition, because its fixed telephony customers are not in the broadband denominator.
+- **Revisit if:** a second source is added with a different grain, or a complete service column is found.

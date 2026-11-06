@@ -24,7 +24,7 @@ Citation (README and dashboard footer):
 "Quejas en materia de telecomunicaciones", PROFECO; https://www.datos.gob.mx/dataset/quejas_materia_telecomunicaciones; CC BY 4.0; 2026-10-24. Modified: cleaned and aggregated by the author.
 ```
 
-Pending: the license field was seen on the resource of the base file only. The other four resources may carry another license; they are not published and the base file is the one used.
+The dataset page also shows **Creative Commons Attribution 4.0** as the license of the whole dataset (`docs/img/profeco_dataset_page_1.png`, 2026-11-05), so the five resources are under the same license as the base file. Only the base file is used.
 
 ## 2. BIT (Banco de Información de Telecomunicaciones)
 
@@ -100,3 +100,4 @@ Risk accepted (decision D10): the BIT has no explicit license, so the permission
 - [x] Capture of the BIT form and footer without terms (`docs/img/bit_terms_of_use.png`)
 - [x] Real download date of the BIT files in the citation (2026-10-26)
 - [x] Capture of the 404 error of `datos.gob.mx/libreusomx` (`docs/img/libreusomx_404.png`)
+- [x] Dataset page of PROFECO with the license of the dataset (`profeco_dataset_page_1.png`, `profeco_dataset_page_2.png`, 2026-11-05)

@@ -26,7 +26,12 @@ Five cuts were published. They are **not** simple, growing versions of one anoth
 | `quejas_telecomunicaciones_2022_junio_2026.csv` | 14,010 | 36,034 | Counted in Power Query. **Base file** (decision D4, accepted) |
 | `quejas_telecom_2022_jul2026.csv` | 12,537 | ≈31,926 | Same method as the first rows. The file name pattern differs |
 
-SHA-256 of the base file (optional, proves the file was not modified): TBD.
+SHA-256 of the two files loaded into SQL Server (calculated on 2026-11-05 with PowerShell `Get-FileHash -Algorithm SHA256`; evidence `docs/img/sha256_raw_files.png`). They prove that the files used are the ones downloaded and not modified:
+
+| File | SHA-256 |
+|---|---|
+| `quejas_telecomunicaciones_2022_junio_2026.csv` (PROFECO, base file) | `C1F13B4A13ED4E8B766BF78A0FFD7B00142DDEEC59611AE59E760D6BAF89FD3F` |
+| `TD_ACC_BAF_ITE_VA.csv` (BIT) | `428886B24842DF63AA2BEFF304609999D50650B768F2B7B8D7EEE85EF460838A` |
 
 ## Evidence
 
@@ -35,6 +40,19 @@ SHA-256 of the base file (optional, proves the file was not modified): TBD.
 ![E1: search result on datos.gob.mx](../img/mx_profeco_fuentes_01.png)
 
 The portal lists "Quejas en materia de telecomunicaciones" (publisher PROFECO) with **5 databases** and a last update on **22 September 2026**.
+
+Dataset page captured on 2026-11-05 (two captures, because the five resources do not fit in one):
+
+![E1b: dataset page, top](../img/profeco_dataset_page_1.png)
+![E1c: dataset page, resources and additional information](../img/profeco_dataset_page_2.png)
+
+What the page shows:
+
+- **Five resources**, all in CSV: Enero 2026, 2022 a 2025, Julio 2026, Junio 2026 and Mayo 2026. They match the five downloaded files (`2022_ene_2026`, `2022_2025`, `jul2026`, `junio_2026`, `may_2026`).
+- **License of the dataset:** Creative Commons Attribution 4.0, in the left column of the page.
+- **Additional information:** administrator PROFECO; last update 22 September 2026, 10:53 (UTC-06:00); created 26 December 2025, 09:49.
+- **Warning of the portal:** "Algunas bases de datos pueden incluir actualizaciones retroactivas por lo que la información histórica puede cambiar en actualizaciones posteriores." This is why the download date and the SHA-256 of the base file are recorded.
+- The page shows dates for the dataset, not for each resource. The date of the base resource (2026-09-22) is on its own resource page (`profeco_license_note.png`).
 
 ### E2. Files downloaded to the project folder
 
@@ -114,7 +132,7 @@ Only the end of each file was inspected, and the checks for criteria 1 and 4 wer
 
 ## Pending evidence
 
-- [ ] Dataset page ("Ver base de datos") with the list of the five resources and their update dates. The license field of the base resource is on record (`profeco_license_note.png`).
+- [x] Dataset page with the list of the five resources (`profeco_dataset_page_1.png`, `profeco_dataset_page_2.png`, 2026-11-05). The page shows the dataset license and the dataset dates; the license field of the base resource is also on record (`profeco_license_note.png`).
 - [ ] Page of the data dictionary: the old URL returns "File not found"; optional: look for the dictionary again (D8 and D9 were accepted without it).
 - [x] Left-hand columns of the Power Query errors view: no longer needed, the clean layer is built in SQL (D2).
 - [x] Results of `step_2.sql` in SSMS (blocks 2.1 to 2.14), received on 2026-10-26.
@@ -125,7 +143,7 @@ Only the end of each file was inspected, and the checks for criteria 1 and 4 wer
 - [x] Excel captures of the file ends saved in `docs/img/` (`mx_profeco_tail_*.png`).
 - [x] Captures of checks B and C (`giro`) of block 2.8 (`step_2_8_b.png`, `step_2_8_c_giro.png`).
 - [x] Block 2.2 re-run with the exact comparison: 36,034 distinct IDs (`step_2_2.png`).
-- [ ] SHA-256 of the base file.
+- [x] SHA-256 of the base file and of the BIT file (2026-11-05, `sha256_raw_files.png`).
 - [x] License evidence of both sources (`docs/sources/licenses.md`).
 - [x] Meaning of the column `odeco`: name of the PROFECO office (check 3.3.16).
 - [x] Meaning of the amount columns: not documented; D9 accepted without the dictionary (2026-10-31).
