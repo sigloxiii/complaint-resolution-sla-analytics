@@ -42,7 +42,7 @@ This is my second portfolio project, following the Google Data Analytics certifi
 
 **Out of scope:** network technical quality (latency, jitter, packet loss). The complaint data measures consumer-protection conciliation, not network performance.
 
-**SLA targets:** the conciliation process has no official service-level target. Targets are therefore treated as **parameters** and evaluated with a sensitivity analysis. The grid will be defined after profiling the data.
+**SLA targets:** the conciliation process has no official service-level target. Targets are therefore treated as **parameters** and evaluated with a sensitivity analysis. The grid is 30, 60, 90, 120 and 180 days, with 60 days as the default (decision D15).
 
 ---
 
@@ -88,7 +88,7 @@ The pipeline stages above describe how the data flow. The project phases below d
 | 1 | Create database and schemas; load raw data into `stg` | Done (`step_0` and `step_1`) |
 | 2 | Clean and normalize: types, durations, provider mapping | Done (`step_3`, revision 2; the state is the PROFECO office, see D8) |
 | 3 | Load denominators (BIT accesses) and build dimensions | Done (`step_5`, `step_6`; D12 and D13) |
-| 4 | Build the `mart` star schema; SQL validation queries | Done (`step_7`, checks 7.3a to 7.3f; D14) |
+| 4 | Build the `mart` star schema; SQL validation queries | Done (`step_7`, `step_8`; D14 and D15) |
 | 5 | Power BI model, DAX measures and report | Pending |
 | 6 | Documentation, findings and limitations | Pending |
 
@@ -196,7 +196,7 @@ sql/
   mx_bit/          # BIT accesses: load and clean (stg → clean)
 powerbi/           # .pbix and PDF report
 docs/
-  decisions.md     # decision log (D1 to D14)
+  decisions.md     # decision log (D1 to D15)
   run_log.md       # script runs and their evidence
   glossary_of_terms.md
   sources/         # one note per data source, and licenses.md

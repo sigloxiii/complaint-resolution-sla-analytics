@@ -130,7 +130,9 @@ Only the end of each file was inspected, and the checks for criteria 1 and 4 wer
 - The data are loaded as text into `stg.profeco_raw` (`sql/mx_profeco/step_1.sql`) and cleaned only in SQL.
 - The publisher may update the data retroactively. The download date and file identity are recorded here.
 
-## Pending evidence
+## Evidence checklist
+
+All items are closed (2026-11-05).
 
 - [x] Dataset page with the list of the five resources (`profeco_dataset_page_1.png`, `profeco_dataset_page_2.png`, 2026-11-05). The page shows the dataset license and the dataset dates; the license field of the base resource is also on record (`profeco_license_note.png`).
 - [x] Page of the data dictionary: the old URL returns "File not found". Not pursued: D8 and D9 were accepted without it (2026-11-05).
