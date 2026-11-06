@@ -186,3 +186,31 @@ Technical terms used in this project, in the order in which they became relevant
 
 - **What it is:** a column that holds the key of a row of another table (for example `operator_key` in `fact_complaint`). The database rejects a value that does not exist in that table.
 - **Where it is used:** all the keys of the two fact tables, so there are no orphan rows (check 7.3d).
+
+### Censoring and truncation
+
+- **Right-censoring:** the data stops before every case has ended. Here the file has only closed cases, so the cases still open are missing and the recent filing years show mostly their fast cases.
+- **Left-truncation:** the data starts after some cases began. Here the file has no case filed before 2022, so the close years 2022 and 2023 miss the long cases.
+- **Where it mattered:** it decided the time axis of the duration (filing year, decision D15) and the reason why 2025 and 2026 are marked as incomplete.
+
+### Median and percentile (P90)
+
+- **What it is:** the median is the value that leaves half of the cases below it. The P90 is the value that leaves 90% of the cases below it, so it shows how long the slowest tenth takes. Both resist extreme values better than the average.
+- **Where it is used:** the duration KPIs (`PERCENTILE_CONT` in `step_8.sql`; `PERCENTILE.INC` in DAX). A median of 35 days and a P90 of 138 days mean that half of the cases close within 35 days and nine of ten within 138.
+
+### Cohort
+
+- **What it is:** a group of cases that share the same starting period, here the filing year. A cohort is followed until its cases end.
+- **Where it is used:** the duration and the outcomes are read by filing-year cohort, the same axis as the volume and the rates per 100,000 accesses (decision D15).
+
+### Service-level target (SLA)
+
+- **What it is:** a time limit for a service (for example "closed within 60 days") and the share of cases that meet it.
+- **In this project:** PROFECO has no official target for the conciliation time, so the targets are parameters (30, 60, 90, 120 and 180 days, default 60) and the report shows how the share changes with each one (decision D15).
+
+### Derived table, CROSS APPLY and view
+
+- **Derived table:** a subquery written in the `FROM` clause and given a name. It does the same as a CTE (SQL Server runs both in the same way), but it is written inside the query. It is used when the language requires it, for example to sort the result of a `SELECT DISTINCT` by an expression (`step_8.sql`).
+- **`CROSS APPLY (VALUES ...)`:** repeats each row once for every value listed. In `step_8.sql` it adds the rows "All four operators" and "All years" to a result without a second query.
+- **View:** a saved query that is read like a table and stores no data. `mart.v_duration_cases` keeps the population of the duration measures in one place, so every check uses the same rules.
+- **Style rule of the project:** CTE for more than one level of logic, derived table only when required, temporary table only for an expensive result that is read more than once (`sql/README.md`).

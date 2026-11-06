@@ -118,6 +118,7 @@ ORDER BY source_file;
 
 SELECT source_file, expediente, fecha_ingreso, fecha_cierre, estado_procesal, nombre_comercial
 FROM (
+    -- Technique: ROW_NUMBER per file in a derived table, to show the first rows of each cut.
     SELECT *, ROW_NUMBER() OVER (PARTITION BY source_file ORDER BY (SELECT NULL)) AS rn
     FROM   stg.profeco_cuts
 ) AS t
@@ -155,6 +156,8 @@ ORDER BY source_file;
 -- Expected: the cuts that end before the base (2022_2025, ene_2026) should
 -- be almost entirely inside the base. Many only_in_cut cases mean the base
 -- is missing cases and must be reconsidered.
+-- Technique: CTEs base and cut (the two sides of the anti-join), so that the final
+-- LEFT JOIN ... IS NULL reads in one line.
 WITH base AS (
     SELECT expediente COLLATE Latin1_General_BIN2 AS case_id
     FROM   stg.profeco_cuts
@@ -239,6 +242,8 @@ ORDER BY c.source_file;
 -- If jul2026 has cases closed after the base (June/July 2026), it is a
 -- newer publication and D4 must be revisited. If the missing cases are
 -- spread over old dates, the cut has cases that the base lacks.
+-- Technique: CTE base + anti-join (LEFT JOIN ... IS NULL) to list what the cut has and
+-- the base does not.
 WITH base AS (
     SELECT expediente COLLATE Latin1_General_BIN2 AS case_id
     FROM   stg.profeco_cuts
@@ -271,6 +276,8 @@ ORDER BY c.source_file, close_year, close_month;
 -- ene_2026 only because of the separator (/ versus -). Here the text is
 -- converted first. A difference is: both dates exist and differ, or only one
 -- of them exists.
+-- Technique: CTE shared (cases in the base and in the cut, dates already converted) so that
+-- the conversion is written once and the comparison reads simply.
 WITH shared AS (
     SELECT c.source_file,
            TRY_CONVERT(date, NULLIF(LTRIM(RTRIM(c.fecha_ingreso)), ''), 23) AS c_filing,
@@ -300,6 +307,7 @@ ORDER BY source_file;
 -- ---------------------------------------------------------------------
 -- jul2026 lacks 6,068 cases of the base. By filing year and by outcome we
 -- see if it is a specific group (for example cancelled cases) or random.
+-- Technique: CTE missing (anti-join result) so that it can be grouped by year and outcome.
 WITH missing AS (
     SELECT b.fecha_ingreso, b.estado_procesal
     FROM   stg.profeco_cuts AS b
@@ -323,6 +331,8 @@ ORDER BY filing_year, n_base_cases_not_in_jul2026 DESC;
 -- repeated ID we count how many different versions of the row exist
 -- (looking at the main columns). n_identical_ids = the repeated rows are
 -- exact copies; n_conflicting_ids = the rows of one ID disagree.
+-- Technique: CTE rep (one row per repeated ID with its number of versions), then the
+-- final SELECT counts identical and conflicting IDs.
 WITH rep AS (
     SELECT source_file,
            expediente COLLATE Latin1_General_BIN2 AS case_id,

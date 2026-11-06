@@ -33,6 +33,7 @@ Index of the project documentation. Everything here is written in English.
 - **Decision log:** every entry has an ID, a date and a status (Open, Provisional, Accepted or Rejected). When a decision changes, the entry is updated and the reason is kept.
 - **Source notes:** one per data source, named `<COUNTRY>_<source>.md` (for example `MX_profeco.md`).
 - **Folder depth:** at most two folders in any path of the repository.
+- **SQL techniques:** every advanced technique in a script (CTE, derived table, window function, `CROSS APPLY`, view, temporary table) is explained with a `-- Technique:` comment, and the style rule is in [`../sql/README.md`](../sql/README.md).
 - **Raw data:** never stored here and never versioned (see [`../data/`](../data/)).
 
 ## Planned

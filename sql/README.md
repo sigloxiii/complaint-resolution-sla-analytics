@@ -20,6 +20,8 @@ sql/
 - Scripts are named `step_N.sql`. The number follows the **execution order across folders**.
 - Every script starts with a header: objective, source, prerequisites and how to run it.
 - Every step is explained with inline comments, and the SQL is kept simple on purpose.
+- **Technique comments.** Whenever a script uses an advanced technique, a line that starts with `-- Technique:` says what it is and why it was chosen instead of a simpler form. Advanced techniques are CTEs (including recursive ones), derived tables, window functions (`OVER`), `CROSS APPLY`, `PERCENTILE_CONT`, views, temporary tables, `PIVOT`, `MERGE` and dynamic SQL. The terms are defined in `docs/glossary_of_terms.md`.
+- **Style rule.** Use a CTE (`WITH name AS`) when a query has more than one level of logic. Use a derived table (a subquery in `FROM`) only when the language requires it, for example to sort the result of a `SELECT DISTINCT` by an expression. Use a temporary table only if an expensive result is read more than once. In SQL Server a CTE is not materialized, so this choice is about readability, not speed.
 - Layers:
   - `stg`: raw data exactly as loaded, all as text. It is never modified.
   - `clean`: the same data with correct types and normalized values.
@@ -37,6 +39,7 @@ sql/
 | 5 | `mx_bit/step_5.sql` | Load the BIT fixed broadband accesses (`TD_ACC_BAF_ITE_VA`) into `stg.bit_acc_baf` |
 | 6 | `mx_bit/step_6.sql` | Clean layer of the BIT: `clean.bit_access` (types, date, state code, operator, flags) |
 | 7 | `common/step_7.sql` | Mart layer (star schema): six dimensions and two fact tables for Power BI |
+| 8 | `common/step_8.sql` | Validation queries of the measures (duration, outcomes, service-level grid); one view, `mart.v_duration_cases` |
 
 ## Requirements
 

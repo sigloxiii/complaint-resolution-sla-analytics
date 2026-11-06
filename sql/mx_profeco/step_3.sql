@@ -210,6 +210,9 @@ CREATE TABLE clean.profeco_complaint (
 );
 GO
 
+-- Technique: CTE chain (c, s, r). Each level needs the result of the previous one, and
+-- nesting them as subqueries would be hard to read. In SQL Server a CTE is not
+-- materialized, so the choice is about readability, not speed.
 -- Fill the table. The query is built in steps (CTEs); each step uses the
 -- result of the previous one:
 --   c : trims text, turns placeholders into NULL, converts dates and amounts
@@ -298,6 +301,8 @@ r AS (
         -- Check 3.3.12 showed that estado is the state of that office.
         CASE WHEN s.case_id LIKE 'PFC.%.%'
              THEN SUBSTRING(s.case_id, 5, CHARINDEX('.', s.case_id, 5) - 5) END AS office_code,
+        -- Technique: window function. It counts the rows of the same case WITHOUT collapsing
+        -- them (GROUP BY would), because the rows are flagged, not totalled.
         COUNT(*) OVER (PARTITION BY s.case_id)                   AS n_rows_same_case,
         COUNT(s.close_date) OVER (PARTITION BY s.close_date)     AS n_closed_same_day
     FROM s
@@ -317,6 +322,7 @@ INSERT INTO clean.profeco_complaint (
 )
 SELECT
     -- Own ID. The order is fixed so the same data always gets the same numbers.
+    -- Technique: ROW_NUMBER with a full ORDER BY creates a stable surrogate key.
     ROW_NUMBER() OVER (ORDER BY r.case_id, r.proveedor, r.nombre_comercial,
                                 r.filing_date, r.close_date)             AS complaint_key,
     r.case_id,
@@ -600,6 +606,8 @@ ORDER BY n DESC;
 -- and count the rows that have another state. A value near 0 means that the
 -- state is the state of the office; a high value means that for some cases
 -- it is the state of the consumer (decision D8).
+-- Technique: CTE with ROW_NUMBER() ... PARTITION BY, to keep the most frequent state
+-- of each office (rank_in_office = 1). A plain GROUP BY cannot pick "the top row".
 WITH office_state AS (
     SELECT office_code, state_name, COUNT(*) AS n,
            ROW_NUMBER() OVER (PARTITION BY office_code ORDER BY COUNT(*) DESC) AS rank_in_office

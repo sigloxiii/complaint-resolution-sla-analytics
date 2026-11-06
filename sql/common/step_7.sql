@@ -132,6 +132,7 @@ GO
 -- ---------------------------------------------------------------------
 -- 7.1 Fill the dimensions
 -- ---------------------------------------------------------------------
+-- Technique: recursive CTE (only a CTE can call itself).
 -- dim_date: a recursive CTE creates one row per day. MAXRECURSION 0 removes
 -- the limit of 100 levels (there are 5,113 days).
 WITH d AS (
@@ -153,6 +154,8 @@ SELECT CONVERT(INT, CONVERT(CHAR(8), dt, 112)),            -- 112 = yyyymmdd
 FROM d
 OPTION (MAXRECURSION 0);
 
+-- Technique (dim_state, dim_brand, dim_reason and dim_outcome): ROW_NUMBER over a derived
+-- table of DISTINCT values creates the surrogate key of each dimension.
 -- dim_state: the states of clean.state_map (01 to 32) plus 99 = no information.
 INSERT INTO mart.dim_state
 SELECT ROW_NUMBER() OVER (ORDER BY state_code), state_code, state_name
@@ -319,6 +322,8 @@ ORDER BY d.year_num, o.sort_order;
 --       filed in the year (fixed broadband) divided by the accesses of December of
 --       that year. National level only: by state the PROFECO office is not the
 --       place of the consumer (D8). Operator "Other" has no denominator.
+-- Technique: two CTEs (c = complaints by year, a = December accesses by year), each
+--            aggregated at its own grain before being joined, so that the sums are not repeated.
 WITH c AS (
     SELECT d.year_num, f.operator_key, COUNT(*) AS complaints
     FROM   mart.fact_complaint AS f

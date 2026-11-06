@@ -12,6 +12,7 @@ Record of each script execution on the local instance (SQL Server 2025 Express, 
 | 5 | `sql/mx_bit/step_5.sql` | 2026-11-01 | Done (592,281 rows loaded; checks 5.0 to 5.8) |
 | 6 | `sql/mx_bit/step_6.sql` | 2026-11-01 | Done (`clean.bit_access`, 592,281 rows; checks 6.1 to 6.6b); D12 and D13 accepted |
 | 7 | `sql/common/step_7.sql` | 2026-11-05 | Done (mart: 6 dimensions, 2 facts; checks 7.3a to 7.3f); D14 accepted |
+| 8 | `sql/common/step_8.sql` | 2026-11-06 | Done (checks 8.1 to 8.9; view `mart.v_duration_cases`); D15 accepted |
 
 ## Step 0: database and schemas
 
@@ -161,3 +162,32 @@ Notes:
 - The numerator is every complaint of the brand, while the denominator is fixed broadband accesses only. Check 7.3g shows almost no mobile complaints (14 of 9,588), so no filter is needed, but the complaints include television and fixed telephony. The rate is read as **complaints about the fixed services of the operator per 100,000 of its broadband accesses**, with the broadband accesses as a proxy of its customer base. The hint covers only 1% to 25% of the rows, so the share of other services cannot be measured.
 - Megacable's 2022 rate is the least comparable: its denominator has no technology in December 2022 and grows 28% in two years (see D13).
 - Total Play has 1,017 complaints filed in 2025 against 579 in 2024. There are no BIT accesses for 2025, so it has no rate.
+
+## Step 8: validation of the measures (`sql/common/step_8.sql`, 2026-11-06)
+
+Profiles the duration, the outcomes and the service-level grid on the mart (decision D15). Evidence: `step_8_check_01.png` to `step_8_check_09.png`. One view is created: `mart.v_duration_cases` (12,833 cases).
+
+| Check | Result | Evidence |
+|---|---|---|
+| 8.1 Usable duration | Fixed brands: Conciliation 12,924 (12,917 valid), Not identified 21 (16), Other legal procedure 18 (16), Queja 395 (386); total 13,358, as in step 3. Out of scope: 22,626 valid; all valid 35,961, the same as the flag | ![8.1](img/step_8_check_01.png) |
+| 8.2 View | Created without errors | ![8.2](img/step_8_check_02.png) |
+| 8.3 Batch-closing day | 50 cases in the population (3 Telmex, 15 Izzi, 13 Megacable, 19 Total Play); longer average than the rest but a lower maximum; kept | ![8.3](img/step_8_check_03.png) |
+| 8.4 Median and P90 by close year | All four operators, all years: 12,833 cases, median 35, P90 138, mean 62.1. By operator: Telmex 70 and 225.2; Izzi 35 and 132.0; Megacable 24 and 92.0; Total Play 32 and 130.0. By close year (four operators): 2022 27 and 96.0; 2023 37 and 186.5; 2024 33 and 174.0; 2025 35 and 127.5; 2026 56 and 130.0 | ![8.4](img/step_8_check_04.png) |
+| 8.5 By filing year | Median and P90: 2022 32 and 169 (4,001 cases); 2023 35 and 161 (2,777); 2024 30 and 130 (2,390); 2025 41 and 118 (2,927); 2026 41 and 75 (738). The maximum falls from 1,014 to 137 days with the age of the cohort | ![8.5](img/step_8_check_05.png) |
+| 8.6 Service-level grid | % within 30, 60, 90, 120 and 180 days: Telmex 16.4, 44.3, 62.0, 75.4, 85.5; Izzi 42.8, 71.8, 82.3, 88.6, 94.4; Megacable 59.2, 81.2, 89.8, 93.2, 96.7; Total Play 48.6, 71.3, 81.9, 88.4, 94.4; four operators 44.9, 69.9, 81.1, 87.8, 93.6 | ![8.6](img/step_8_check_06.png) |
+| 8.7 Outcomes by close year | Four operators, all years: 12,837 cases; Conciliada 8,319; No Conciliada 739; Desistimiento 3,720; Improcedente 58; other 1. Conciliation rate 64.8% (91.8% without withdrawals). By operator: Telmex 67.7%, Izzi 62.9%, Megacable 68.9%, Total Play 60.2% | ![8.7](img/step_8_check_07.png) |
+| 8.8 Median and P90 by filing year, by operator | Reference values for DAX. Four operators (median and P90): 2022 32 and 169.0; 2023 35 and 161.0; 2024 30 and 130.0; 2025 41 and 118.0; 2026 41 and 75.0. Telmex: 66 and 305.0; 76 and 250.0; 70 and 198.0; 74 and 161.6. Izzi: 32 and 140.0; 36 and 169.2; 33 and 130.6; 41 and 112.5. Megacable: 19 and 90.0; 22 and 106.6; 21 and 78.0; 31 and 100.9. Total Play: 33 and 181.0; 31 and 143.5; 22 and 102.0; 34 and 117.0. The cases add up to 12,833 for every operator and year, as in 8.5 | ![8.8](img/step_8_check_08.png) |
+| 8.9 Outcomes by filing year, by operator | Reference values for DAX. Conciliation rate of the four operators: 2022 68.1%; 2023 66.0%; 2024 63.5%; 2025 60.2%; 2026 65.3% (partial). Without withdrawals: 91.1%, 91.6%, 90.9%, 92.8%, 96.6%. Withdrawal share: 24.8%, 27.5%, 29.7%, 34.8%, 31.8%. The cases add up to 12,837, as in 8.7 | ![8.9](img/step_8_check_09.png) |
+
+- Counts checked: the 12,833 cases of 8.4, 8.5 and 8.6 are the sum of the four operators (2,129 + 3,567 + 3,873 + 3,264); the outcome check has 4 more cases because it does not need a valid duration.
+- Script fix while running it: 8.4 and 8.7 gave error 145 (with `SELECT DISTINCT` the `ORDER BY` can only use columns of the select list); both are wrapped in a subquery that sorts.
+- Decision D15 explains why the filing year is the axis (left-truncation of the close year) and the other choices.
+
+What the filing-year cohorts show (2022 to 2024 are complete; 2025 has an incomplete tail and 2026 is partial):
+
+- **The conciliation rate of the four operators falls from 68.1% to 60.2% (2022 to 2025), and the fall comes from the withdrawals**, which go from 24.8% to 34.8% of the cases. Among the decided cases (Conciliada against No Conciliada) the share stays between 90.9% and 92.8%. This supports the choice of D15 to show the withdrawal share next to the rate.
+- **By operator, the rate moves in different directions:** Megacable falls from 75.6% to 60.8%, Izzi from 64.9% to 60.5% and Total Play from 62.8% to 56.5%; Telmex rises from 65.0% to 68.1%.
+- **The median duration of 2025 is higher than that of 2024 in the four operators** (41 against 30 days in total), even though the missing open cases push the 2025 values down. 2024 is the fastest cohort.
+- **Telmex is the slowest in every cohort**, but its P90 falls from 305 to 198 days between 2022 and 2024.
+- The 2026 conciliation rate (65.3%) and its P90 (75 days) are not comparable: the cohort has only the cases already closed.
+- The cases of 8.8 are fewer than the complaints of check 7.3e for the same year (for example Telmex 2022: 846 against 863) because the population has only the Conciliation group with a valid duration.

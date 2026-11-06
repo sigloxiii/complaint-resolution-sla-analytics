@@ -134,6 +134,8 @@ FROM (
 
 -- 6.2f: five repeated keys of December 2024, row by row: what differs between
 --       the rows (folio, concessionaire, accesses)?
+-- Technique: CTE rep (the five most repeated keys) joined to the rows, so the five keys
+--            are chosen once and then looked at row by row.
 WITH rep AS (
     SELECT TOP 5 k_entidad, k_municipio, k_acceso_internet, k_empresa
     FROM   stg.bit_acc_baf
@@ -169,6 +171,8 @@ FROM (
 -- 6.2h: how much do the 325 surplus copies weigh in December 2024? If the share
 --       is far below 0.1%, keeping or removing them does not change any rate.
 --       rn > 1 marks the surplus copy of each group of identical rows.
+-- Technique: window function ROW_NUMBER inside a CTE; rn > 1 marks the surplus copy
+--            without deleting any row. A GROUP BY would only count, not mark.
 WITH x AS (
     SELECT grupo,
            TRY_CONVERT(decimal(18,2), a_total_e) AS acc,
@@ -237,6 +241,8 @@ CREATE TABLE clean.bit_access (
 );
 GO
 
+-- Technique: CTE c (types, text and flags) so that the INSERT SELECT only numbers the
+--            rows; ROW_NUMBER with a full ORDER BY creates a stable surrogate key.
 WITH c AS (
     SELECT NULLIF(LTRIM(RTRIM(folio)), '')                   AS folio,
            TRY_CONVERT(smallint, NULLIF(LTRIM(RTRIM(anio)), ''))  AS year_num,

@@ -18,6 +18,7 @@ Each entry records the context, the options considered, the decision and the rea
 | D12 | Grain of the BIT: keep every row, flag exact copies | Accepted |
 | D13 | No technology filter in the BIT denominators | Accepted |
 | D14 | Star schema of the mart: two facts, shared operator, state and date | Accepted |
+| D15 | Population, time axis, conciliation rate and service-level grid of the measures | Accepted |
 
 ---
 
@@ -298,3 +299,25 @@ Each entry records the context, the options considered, the decision and the rea
   - Service type (`service_hint`, D7), amounts (D9) and the channel stay as columns of the fact, not as dimensions.
 - **Numerator and denominator (check 7.3g):** only 14 of the 9,588 fixed-brand complaints of 2022 to 2024 name mobile telephony, so no service filter is applied. The complaints include television and fixed telephony, and the hint covers only 1% to 25% of the rows (D7), so the metric is defined as complaints about the fixed services of the operator per 100,000 of its broadband accesses. Telmex is the most affected by this definition, because its fixed telephony customers are not in the broadband denominator.
 - **Revisit if:** a second source is added with a different grain, or a complete service column is found.
+
+---
+
+## D15. Population, time axis, conciliation rate and service-level grid of the measures
+
+- **Status:** Accepted
+- **Date:** 2026-11-06
+- **Context:** before the DAX measures are written, the checks 8.1 to 8.7 of `step_8.sql` profiled the resolution time (BQ1, BQ4), the outcomes (BQ2) and the service-level targets. The conciliation process has no official target, so the targets are parameters.
+- **Decision 1, population of the duration:** fixed brands, the four operators, procedure group "Conciliation", valid duration. It has **12,833 cases** (`mart.v_duration_cases`). Queja and the other legal procedures are left out (they are not a conciliation); out of the dashboard scope there are 21,856 more valid conciliation cases.
+- **Decision 2, batch-closing day:** the 50 cases closed on 2026-03-10 stay in the population (0.4%). Their average duration is longer (Telmex 155 against 105 days, Izzi 88 against 60, Megacable 84 against 42, Total Play 80 against 59), but they are few and their maximum is lower than that of the other cases, so they do not distort the P90. The flag `flag_unusual_close_day` stays for a sensitivity check.
+- **Decision 3, time axis: the filing year (cohort), the same as the volume and the rates.**
+  - Options: (A) filing year; (B) close year.
+  - Why A: the file has no case filed before 2022 (check 7.3e), so with the close year the cases of 2022 and early 2023 cannot include the long ones filed before 2022 (left-truncation). With the filing year the only gap is that the cases still open are not in the file (right-censoring): it is small for 2022 to 2024 and visible in 2025 and 2026 (P90 of 169, 161, 130, 118 and 75 days for 2022 to 2026, and a maximum that falls with the age of the cohort, check 8.5). B has biased years at the start and at the end; A only at the end.
+  - Rule for the report: 2022 to 2024 are complete cohorts, 2025 is marked "incomplete tail" and 2026 "partial". The close-year results (8.4, 8.7) are kept in `step_8.sql` as the comparison.
+- **Decision 4, conciliation rate:** `Conciliada / (Conciliada + No Conciliada + Desistimiento + Improcedente)`, called **conciliation rate**. Withdrawals (Desistimiento) are 29% of the cases (3,720 of 12,837) and the file cannot tell if the consumer was satisfied outside the process or gave up, so the report also shows the **withdrawal share** next to the rate. The variant without withdrawals (91.8% for the four operators) is not the headline measure because it hides a third of the cases. Cases with another or missing outcome are 1 in 12,837.
+- **Decision 5, service-level grid:** targets of **30, 60, 90, 120 and 180 days**, default **60 days**, as a parameter table in Power BI. Evidence (check 8.6, share closed within the target, four operators): 44.9%, 69.9%, 81.1%, 87.8% and 93.6%. At 60 days the operators are far apart (Telmex 44.3%, Izzi 71.8%, Total Play 71.3%, Megacable 81.2%) and the value is close to the mean duration (62 days); at 90 days they come together (62.0% to 89.8%). The default is a reading choice, not an official target.
+- **Findings that the report must show with care:**
+  - Telmex is the slowest: median 70 and P90 225 days (all years), against Izzi 35 and 132, Total Play 32 and 130, Megacable 24 and 92.
+  - Telmex has the highest share of cases that end in conciliation (67.7%) but the lowest share closed within 60 days (44.3%).
+  - Telmex has few cases in the population (2,129), so its yearly values move more.
+- **Evidence added by checks 8.8 and 8.9:** the fall of the conciliation rate of the four operators (68.1% in 2022, 60.2% in 2025) is explained by the withdrawals (24.8% to 34.8%); without them the rate stays between 90.9% and 92.8%. Details in `docs/run_log.md`.
+- **Revisit if:** a complete service column or a regulator target for the conciliation time is found.
