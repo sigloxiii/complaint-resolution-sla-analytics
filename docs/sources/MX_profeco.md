@@ -133,7 +133,7 @@ Only the end of each file was inspected, and the checks for criteria 1 and 4 wer
 ## Pending evidence
 
 - [x] Dataset page with the list of the five resources (`profeco_dataset_page_1.png`, `profeco_dataset_page_2.png`, 2026-11-05). The page shows the dataset license and the dataset dates; the license field of the base resource is also on record (`profeco_license_note.png`).
-- [ ] Page of the data dictionary: the old URL returns "File not found"; optional: look for the dictionary again (D8 and D9 were accepted without it).
+- [x] Page of the data dictionary: the old URL returns "File not found". Not pursued: D8 and D9 were accepted without it (2026-11-05).
 - [x] Left-hand columns of the Power Query errors view: no longer needed, the clean layer is built in SQL (D2).
 - [x] Results of `step_2.sql` in SSMS (blocks 2.1 to 2.14), received on 2026-10-26.
 - [x] Results of the repeated-ID queries (block 2.2), block 2.15 and block 2.16.

@@ -36,7 +36,7 @@ This is my second portfolio project, following the Google Data Analytics certifi
 |---|---|---|
 | BQ1 | How long do complaints take to close, by responsible party, region (PROFECO office) and category? | Median and P90 of days to close |
 | BQ2 | Which responsible parties and regions have the worst outcomes? | Conciliation rate (amounts are descriptive only, see D9) |
-| BQ3 | How does complaint volume compare once normalized by customer base? | Complaints per 100,000 fixed broadband accesses (2022 to 2024) |
+| BQ3 | How does complaint volume compare once normalized by customer base? | Complaints about fixed services per 100,000 broadband accesses of the operator (2022 to 2024, D14) |
 | BQ4 | How have these indicators evolved over the period? | Trend and seasonality |
 | BQ5 | How do results compare with published benchmarks? | Contextual comparison with regulator reports |
 
@@ -196,7 +196,7 @@ sql/
   mx_bit/          # BIT accesses: load and clean (stg → clean)
 powerbi/           # .pbix and PDF report
 docs/
-  decisions.md     # decision log (D1 to D13)
+  decisions.md     # decision log (D1 to D14)
   run_log.md       # script runs and their evidence
   glossary_of_terms.md
   sources/         # one note per data source, and licenses.md

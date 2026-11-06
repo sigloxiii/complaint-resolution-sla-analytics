@@ -2,7 +2,7 @@
 
 This folder will hold the report (`.pbix`) and its PDF export.
 
-**Status:** not started. The report is built after the `mart` layer exists (see the phases in the root README).
+**Status:** not started. The `mart` layer exists (`sql/common/step_7.sql`, decision D14); the report is built after the validation queries of the measures are run in SQL.
 
 ## Plan
 
