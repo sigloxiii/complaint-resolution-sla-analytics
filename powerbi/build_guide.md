@@ -31,6 +31,8 @@ How to build the report from the `mart` layer. The measures and the report follo
 
 Capture: the Navigator with the eight tables ticked, before loading → `powerbi_load_tables.png` (crop the user name if it shows).
 
+**Rename the tables (needed for the DAX below).** Power BI loads them as `mart dim_brand`, `mart fact_complaint`, etc. (schema + space + table). Rename each of the eight tables to its plain name by removing the `mart ` prefix: Data pane or Model view → right click the table → **Rename**. Relationships are kept. Without this, every `dim_*[column]` reference in this guide fails with "column doesn't exist".
+
 ## A2. Settings and relationships
 
 **Settings (File → Options and settings → Options):**
@@ -62,7 +64,7 @@ Capture: Model view with the tables arranged as a star (dimensions around the tw
 2. **Sort:** select `dim_date[month_name]` → *Sort by column* → `month_num`.
 3. **Hide** (right click → Hide in report view) all the `*_key` columns of the eight tables, the `flag_*` columns of `fact_complaint` and the counters `n_source_rows`, `n_missing_rows` and `n_exact_copy_rows` of `fact_accesses` (the data-quality page reads them with measures).
 4. **Summarization:** set `days_to_close`, `accesses`, `claimed_amount` and `recovered_amount` to **Don't summarize** (only the measures are used).
-5. **Measures table:** *Home → Enter data*, one empty table named `_Measures`. All the measures go there, in display folders (Volume, Duration, Outcomes, Service level, Accesses and rates, Data quality).
+5. **Measures table:** *Home → Enter data*, one empty table named `_Measures`. All the measures go there, in display folders (`1 Volume`, `2 Duration`, `3 Outcomes`, `4 Service level`, `5 Accesses and rates`, `6 Data quality`; emojis are optional).
 6. **Calculated column** in `fact_complaint` (it marks the duration population of D15 once, at refresh, so the measures do not repeat five filters):
 
 ```dax
@@ -91,7 +93,7 @@ ROW (
 )
 ```
 
-Expected: complaints **36,034**, access_rows **19,840**, days **5,113**, duration_cases **12,833**, dec_2024_accesses **27,809,589 + 1,544,536 = 29,354,125** (the four operators plus Other, as in checks 6.5b and 7.3c).
+Expected: complaints **36,034**, access_rows **19,840**, days **5,113**, duration_cases **12,833**, dec_2024_accesses **29,003,240** (four operators 11,208,977 + 5,619,403 + 5,316,545 + 5,313,779 = 27,458,704, plus Other 1,544,536; checks 6.5b and 7.3f).
 
 Capture → `powerbi_check_01.png`.
 
@@ -123,15 +125,20 @@ Mean Days to Close =
 CALCULATE ( AVERAGE ( fact_complaint[days_to_close] ), fact_complaint[Is Duration Case] = 1 )
 
 Cohort Status =
--- Text for the report: tells if the filing-year cohort is complete (D15)
+-- Text for the report: tells if the filing-year cohort is complete (D15).
+-- Blank when the year has no complaints, so empty calendar years do not appear in matrices
 VAR _year = SELECTEDVALUE ( dim_date[year_num] )
 RETURN
-    SWITCH (
-        TRUE (),
-        ISBLANK ( _year ), "All cohorts",
-        _year <= 2024,     "Complete",
-        _year = 2025,      "Incomplete tail",
-        "Partial year"
+    IF (
+        ISBLANK ( [Complaints] ),
+        BLANK (),
+        SWITCH (
+            TRUE (),
+            ISBLANK ( _year ), "All cohorts",
+            _year <= 2024,     "Complete",
+            _year = 2025,      "Incomplete tail",
+            "Partial year"
+        )
     )
 
 -- OUTCOMES (population: fixed brands, four operators, Conciliation, with close date) ----
@@ -256,7 +263,7 @@ Do not relate it to any table. Use it as a slicer (single selection); the measur
 
 **Fifth validation, volume:** `Complaints` with no filter must give **13,358**.
 
-**A value that does not match is not corrected in the report: check the measure, then the model, and only then the SQL.** Capture the three matrices → `powerbi_check_02.png`, `powerbi_check_03.png` and `powerbi_check_04.png`.
+**A value that does not match is not corrected in the report: check the measure, then the model, and only then the SQL.** Captures: see the capture list at the end.
 
 ## B3. Report pages
 
@@ -306,8 +313,10 @@ Reference values of the data-quality cards: missing close date **66**, close bef
 | A1 | Navigator with the eight tables ticked | `powerbi_load_tables.png` |
 | A2 | Model view (star) | `powerbi_model.png` |
 | A3 | DAX query result | `powerbi_check_01.png` |
-| B2 | Matrix by operator | `powerbi_check_02.png` |
-| B2 | Matrix by filing year | `powerbi_check_03.png` |
-| B2 | Matrix of rates and accesses | `powerbi_check_04.png` |
+| B1 lot 1 | Matrices by operator and by filing year (duration) | `powerbi_check_02.png` |
+| B1 lot 2 | Matrix by operator (outcomes, SLA) | `powerbi_check_03a.png` |
+| B1 lot 2 | Matrix by filing year (outcomes) | `powerbi_check_03b.png` |
+| B1 lot 2 | Matrix by SLA target (30 to 180 days) | `powerbi_check_03c.png` |
+| B1 lot 3 | Rates, accesses and data-quality cards | `powerbi_check_04.png` |
 | B3 | Six pages of the report | `powerbi_page_01.png` to `powerbi_page_06.png` |
 | B4 | PDF | `powerbi/complaint_sla_report.pdf` |
