@@ -89,7 +89,7 @@ The pipeline stages above describe how the data flow. The project phases below d
 | 2 | Clean and normalize: types, durations, provider mapping | Done (`step_3`, revision 2; the state is the PROFECO office, see D8) |
 | 3 | Load denominators (BIT accesses) and build dimensions | Done (`step_5`, `step_6`; D12 and D13) |
 | 4 | Build the `mart` star schema; SQL validation queries | Done (`step_7`, `step_8`; D14 and D15) |
-| 5 | Power BI model, DAX measures and report | Pending |
+| 5 | Power BI model, DAX measures and report | In progress (`powerbi/build_guide.md`, D16) |
 | 6 | Documentation, findings and limitations | Pending |
 
 **Star schema (`mart`):** `fact_complaint` (one row per case) and `fact_accesses` (operator × state × month) share `dim_operator`, `dim_state` and `dim_date`; `dim_brand`, `dim_reason` and `dim_outcome` describe the complaints (decision D14).
@@ -194,7 +194,7 @@ sql/
   common/          # source-agnostic: database, schemas, mart (step_7), views
   mx_profeco/      # PROFECO complaints: load, audit and clean (stg → clean)
   mx_bit/          # BIT accesses: load and clean (stg → clean)
-powerbi/           # .pbix and PDF report
+powerbi/           # build guide and PDF export (the .pbix stays local, D16)
 docs/
   decisions.md     # decision log (D1 to D15)
   run_log.md       # script runs and their evidence

@@ -1,8 +1,8 @@
 # Power BI
 
-This folder will hold the report (`.pbix`) and its PDF export.
+This folder holds the build guide and the PDF export of the report. The report file (`.pbix`) stays local.
 
-**Status:** not started. The `mart` layer exists (`sql/common/step_7.sql`, decision D14); the report is built after the validation queries of the measures are run in SQL.
+**Status:** in progress. The `mart` layer (`sql/common/step_7.sql`, D14) and the validation queries of the measures (`sql/common/step_8.sql`, D15) are done. The step-by-step guide, the DAX measures and the SQL reference values are in [`build_guide.md`](build_guide.md).
 
 ## Plan
 
@@ -19,7 +19,7 @@ This folder will hold the report (`.pbix`) and its PDF export.
 
 ## Notes
 
-- A `.pbix` file in Import mode **contains the imported data**. It is published only with aggregated tables (decision D10: no row-level BIT data); otherwise only the PDF is published.
+- A `.pbix` file in Import mode **contains the imported data**, including row-level complaints and monthly BIT accesses, which is finer than the aggregates allowed by D10. So the `.pbix` is not versioned (`*.pbix` in `.gitignore`, decision D16) and only the PDF and the screenshots are published.
 - Every report page carries the source citations and the non-endorsement notice of `docs/sources/licenses.md`.
 - Screenshots of the report go to `docs/img/` and are named `powerbi_<name>.png`.
 - Power BI temporary files (`.pbi/`) are ignored by Git.

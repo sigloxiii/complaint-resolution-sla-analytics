@@ -19,6 +19,7 @@ Each entry records the context, the options considered, the decision and the rea
 | D13 | No technology filter in the BIT denominators | Accepted |
 | D14 | Star schema of the mart: two facts, shared operator, state and date | Accepted |
 | D15 | Population, time axis, conciliation rate and service-level grid of the measures | Accepted |
+| D16 | Power BI model choices and what is published | Proposed |
 
 ---
 
@@ -321,3 +322,19 @@ Each entry records the context, the options considered, the decision and the rea
   - Telmex has few cases in the population (2,129), so its yearly values move more.
 - **Evidence added by checks 8.8 and 8.9:** the fall of the conciliation rate of the four operators (68.1% in 2022, 60.2% in 2025) is explained by the withdrawals (24.8% to 34.8%); without them the rate stays between 90.9% and 92.8%. Details in `docs/run_log.md`.
 - **Revisit if:** a complete service column or a regulator target for the conciliation time is found.
+
+---
+
+## D16. Power BI model choices and what is published
+
+- **Status:** Proposed (accept after the validation matrices of `powerbi/build_guide.md` match the SQL values)
+- **Date:** 2026-11-06
+- **Context:** the report must give the same numbers as the SQL checks of step 8, respect the limits of D8, D10, D14 and D15, and be published in a public repository.
+- **Decisions:**
+  1. **Population of the duration as a calculated column** (`Is Duration Case`) in `fact_complaint`. Options: (a) repeat the five filters in every measure; (b) import the view `mart.v_duration_cases` as a third table; (c) one calculated column. Chosen: (c). It is evaluated once at refresh, the measures stay short, and it avoids a second copy of the cases with its own relationships.
+  2. **Measures that refuse to answer when the answer would be wrong.** `Complaints per 100k Accesses` returns blank by month, by state, with several years selected, and for years without accesses; `Accesses December` returns blank with several years selected. This applies D8 (the state is the PROFECO office) and D12 (accesses are a stock) in the model, so a chart cannot show a misleading rate.
+  3. **Service-level targets as a disconnected parameter table** (30, 60, 90, 120 and 180 days, default 60), read with `SELECTEDVALUE`.
+  4. **No relationship between the two fact tables.** They share `dim_date`, `dim_state` and `dim_operator` (D14).
+  5. **No map of the state.** Complaints by state are the PROFECO office (62% in Ciudad de México), and a map would suggest where the consumer lives. A bar chart with the title "PROFECO office state" is used.
+  6. **Publication:** the `.pbix` is **not versioned** (`*.pbix` in `.gitignore`). It holds the imported data: row-level complaints and BIT accesses by month, which is finer than the aggregates allowed by D10 (operator group, state, year). Only the PDF export and the page screenshots are published.
+- **Revisit if:** the CRT allows the publication of the BIT data, or a reduced `.pbix` with only the aggregates of D10 is wanted.
