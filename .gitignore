@@ -12,6 +12,9 @@ data/*.csv
 # Power BI temp files
 .pbi/
 
+# The report file holds the imported data (decision D16): only the PDF and screenshots are versioned
+*.pbix
+
 # Editor settings (personal)
 .vscode/
 
