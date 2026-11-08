@@ -288,10 +288,10 @@ Sources: PROFECO, "Quejas en materia de telecomunicaciones", datos.gob.mx, CC BY
 | 5 | Reasons and offices | Bar (top 10): `Complaints` by `dim_reason[claim_type]`; bar: `Complaints` by `dim_state[state_name]` titled "PROFECO office state"; card `Central Office Share`; text with the D8 warning | BQ1 |
 | 6 | Data quality and limits | Cards `DQ ...`; text box with the limitations (D4, D7, D8, D9, D12, D13, D15) | all |
 
-Reference values of the data-quality cards: missing close date **66**, close before filing **3**, cancelled **48**, batch closing day **147**, BIT rows without value **1,831**, BIT exact copies **325**.
+Reference values of the data-quality cards (`Central Office Share` = **49.6%** for fixed broadband brands, 6,624 of 13,358; 54.9% for all 36,034 complaints, SQL check P1; combined rate per 100,000 accesses of the four operators: 16.60 in 2022, 11.51 in 2023 and 9.33 in 2024, SQL check P2): missing close date **66**, close before filing **3**, cancelled **48**, batch closing day **147**, BIT rows without value **1,831**, BIT exact copies **325**.
 
 **Limitations text for page 6 (short):**
-- The state is the PROFECO office, not the place of the consumer; 62% of the cases are handled by the central office in Ciudad de México.
+- The state is the PROFECO office, not the place of the consumer: 62% of all complaints are filed in Ciudad de México, and the central office alone handles 54.9% of all cases (49.6% of the fixed broadband cases shown in the report).
 - The rate per 100,000 accesses uses the filing year and the accesses of December; there are no BIT accesses after December 2024.
 - The numerator holds every complaint of the brand (the service type is known in 1% to 25% of the rows); the denominator is fixed broadband accesses.
 - Only closed cases are in the file: the 2025 cohort has an incomplete tail and 2026 is partial.
