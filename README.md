@@ -4,7 +4,7 @@
 
 > SQL Server + Power BI analysis of complaint resolution times against service-level targets, by responsible party and region, built on open government data. Source-agnostic star schema with per-source ingestion adapters.
 
-![License](https://img.shields.io/badge/License-MIT-yellow) ![Data](https://img.shields.io/badge/Data-PROFECO_%2B_BIT_M%C3%A9xico-blue) ![Status](https://img.shields.io/badge/Status-Phase_5_Power_BI-blue)
+![License](https://img.shields.io/badge/License-MIT-yellow) ![Data](https://img.shields.io/badge/Data-PROFECO_%2B_BIT_M%C3%A9xico-blue) ![Status](https://img.shields.io/badge/Status-Complete-brightgreen)
 
 ---
 
@@ -89,8 +89,8 @@ The pipeline stages above describe how the data flow. The project phases below d
 | 2 | Clean and normalize: types, durations, provider mapping | Done (`step_3`, revision 2; the state is the PROFECO office, see D8) |
 | 3 | Load denominators (BIT accesses) and build dimensions | Done (`step_5`, `step_6`; D12 and D13) |
 | 4 | Build the `mart` star schema; SQL validation queries | Done (`step_7`, `step_8`; D14 and D15) |
-| 5 | Power BI model, DAX measures and report | In progress (`powerbi/build_guide.md`, D16) |
-| 6 | Documentation, findings and limitations | Pending |
+| 5 | Power BI model, DAX measures and report | Done (`powerbi/build_guide.md`, D16; PDF in `powerbi/complaint_sla_report.pdf`) |
+| 6 | Documentation, findings and limitations | Done (this README, `docs/`, `data/data_dictionary.md`) |
 
 **Star schema (`mart`):** `fact_complaint` (one row per case) and `fact_accesses` (operator × state × month) share `dim_operator`, `dim_state` and `dim_date`; `dim_brand`, `dim_reason` and `dim_outcome` describe the complaints (decision D14).
 
@@ -190,13 +190,14 @@ data/
   raw/             # source files as downloaded (not versioned)
   interim/         # intermediate files (not versioned)
   reference/       # small seed files, if any (the provider mapping lives in SQL: clean.brand_map)
+  data_dictionary.md  # every table and view of stg, clean and mart
 sql/
   common/          # source-agnostic: database, schemas, mart (step_7), views
   mx_profeco/      # PROFECO complaints: load, audit and clean (stg → clean)
   mx_bit/          # BIT accesses: load and clean (stg → clean)
-powerbi/           # build guide and PDF export (the .pbix stays local, D16)
+powerbi/           # build guide and the PDF export of the report (the .pbix stays local, D16)
 docs/
-  decisions.md     # decision log (D1 to D15)
+  decisions.md     # decision log (D1 to D16)
   run_log.md       # script runs and their evidence
   glossary_of_terms.md
   sources/         # one note per data source, and licenses.md
@@ -222,23 +223,72 @@ The code and documentation of this repository are MIT-licensed. **The data keeps
 
 ## How to reproduce
 
-To be completed once the pipeline is implemented.
+The raw files and the Power BI file are not published (decisions D10 and D16), so the pipeline is rebuilt from the public sources. All scripts are in `sql/` and are explained step by step in `sql/README.md`.
+
+**Requirements:** SQL Server 2025 Express (instance `.\SQLEXPRESS`), SSMS 22 and Power BI Desktop. Windows, because `BULK INSERT` is run by the SQL Server service.
+
+1. **Download the sources** (links, download dates and SHA-256 of the files used are in `docs/sources/`) and save them in `data/raw/` with their original names:
+   - PROFECO, *Quejas en materia de telecomunicaciones*, resource closed in June 2026 (`quejas_telecomunicaciones_2022_junio_2026.csv`).
+   - CRT, BIT, table `TD_ACC_BAF_ITE_VA` (`TD_ACC_BAF_ITE_VA.csv`).
+2. **Adjust the paths.** The scripts `step_1.sql`, `step_5.sql` (and `step_4.sql`, optional) read the files with an absolute path; change it to your `data/raw/` folder and give read permission on that folder to the SQL Server service account.
+3. **Run the scripts in SSMS, in order:** `step_0` to `step_8` (see the execution order in `sql/README.md`). `step_2` and `step_4` are audit steps: the clean layer does not depend on them. Every script ends with checks; the expected values are in `docs/run_log.md`.
+
+| Object | Expected rows |
+|---|---|
+| `stg.profeco_raw`, `clean.profeco_complaint`, `mart.fact_complaint` | 36,034 |
+| `stg.bit_acc_baf`, `clean.bit_access` | 592,281 |
+| `mart.fact_accesses` | 19,840 |
+| `mart.dim_date`, `dim_state`, `dim_operator`, `dim_brand`, `dim_reason`, `dim_outcome` | 5,113; 33; 5; 190; 176; 39 |
+| `mart.v_duration_cases` | 12,833 |
+
+4. **Build the report.** In Power BI Desktop connect to `.\SQLEXPRESS`, database `complaint_sla`, in Import mode, load the eight `mart` tables and follow `powerbi/build_guide.md` (model, 26 measures, validation pages and the six report pages). Every measure has a reference value from SQL to compare with.
+5. **Check the result** against the PDF `powerbi/complaint_sla_report.pdf` and the screenshots in `docs/img/` (`powerbi_page_01.png` to `powerbi_page_06.png`).
 
 ---
 
 ## Results and findings
 
-To be completed.
+The report has six pages (`powerbi/complaint_sla_report.pdf`). The scope is **fixed broadband**: 13,358 complaints, of which 13,268 (99.3%) are against Telmex, Izzi, Megacable and Total Play. The duration and outcome results use the 12,833 conciliation cases with a valid duration. The time axis is the **filing year**: 2022 to 2024 are complete cohorts, 2025 has an incomplete tail and 2026 is partial (decision D15).
+
+![Overview](docs/img/powerbi_page_01.png)
+
+| BQ | Finding | Evidence |
+|---|---|---|
+| BQ1 | **Telmex is the slowest.** Median and P90 days to close: Telmex 70 and 225, Izzi 35 and 132, Total Play 32 and 130, Megacable 24 and 92 (all four: 35 and 138). Within 60 days close 44.3% of Telmex cases, against 71.8% Izzi, 71.3% Total Play and 81.2% Megacable | `docs/run_log.md`, checks 8.4 and 8.6 |
+| BQ1 | **Three claim types hold 92.5% of the complaints:** Cobro Indebido (4,343), Entrega del Producto o Servicio (4,335) and Contratos (3,682) | checks P3 and P4 |
+| BQ2 | **The conciliation rate of the four operators falls from 68.1% (2022) to 60.2% (2025), and the fall comes from withdrawals** (Desistimiento), which go from 24.8% to 34.8% of the cases. Among the decided cases the share stays between 90.9% and 92.8% | checks 8.7 and 8.9 |
+| BQ2 | **Speed and outcome do not go together.** Telmex is the slowest but has a conciliation rate of 67.7%; Total Play closes fast (median 32) and has the lowest rate (60.2%) | checks 8.4 and 8.7 |
+| BQ3 | **Complaints per 100,000 fixed broadband accesses fall from 16.60 (2022) to 11.51 (2023) and 9.33 (2024)**, at national level for the four operators combined | check P2 |
+| BQ4 | **The 2024 cohort is the fastest** (median 30 days) and 2025 is slower in the four operators (median 41), even though the missing open cases make recent cohorts look faster | check 8.8 |
+| BQ4 | **Total Play had a spike of complaints in April to July 2025:** 503 cases against 200 in the same months of 2024 (monthly peak of 166 in April, 3.4 times the 2024 average). Cobro Indebido (201 against 51) and Contratos (209 against 84) explain 91% of the increase. The data do not show the cause | checks P5 and P6 |
+| D8 | **Ciudad de México concentrates 58.0% of the complaints by state** (7,748), largely because the central office handles 49.6% of the fixed broadband cases. The state chart is read as "PROFECO office", and there is no map | checks P1 and P3 |
+
+Data quality is marginal (66 cases without close date, 3 closing before filing, 48 cancelled, 147 on a batch closing day, 1,831 BIT rows without value and 325 exact copies) and does not change the findings (page 6 of the report).
 
 ---
 
 ## Limitations
 
-To be completed. The caveats listed above will be expanded with the results of profiling.
+- **Only closed cases.** The file has no open cases, so recent filing months are incomplete and their durations look shorter than reality (right-censoring). That is why the analysis uses filing-year cohorts and marks 2025 and 2026 as incomplete (D15). The 2026 values rest on few closed cases and are not comparable.
+- **The state is the PROFECO office, not the place of the consumer** (D8). A regional comparison is only valid for the cases not handled by the central office.
+- **The rate per 100,000 accesses is national, annual and limited to 2022 to 2024.** The BIT accesses are a December stock (D12), the BIT ends in December 2024, and the complaint file has no complete service-type column (D7): the numerator counts every complaint of the brand, while the denominator is fixed broadband only. There is no rate by state or by month.
+- **The duration measures the PROFECO conciliation process**, not the repair time of the provider (D15). Only complaints that reach PROFECO are recorded, so there is a self-selection bias. There is no official service-level target: the targets of 30 to 180 days are parameters for a sensitivity analysis.
+- **One provider per complaint** (D4), and amounts are used only as descriptive information because they are unreliable (D9).
+- **Batch-closing day:** 50 cases closed on 2026-03-10 have longer durations and stay in the population (0.4%) (D15).
+- **BQ5 was not developed.** The comparison with the reports of the regulator ("Soy Usuario", quality guidelines) is left for future work, because those figures are not loaded in the database.
+- **Associations, not causes.** The findings describe the data; for example, the data do not explain the withdrawals or the spike of Total Play.
+- **Source rights.** The BIT has no explicit license on record, so only aggregates are published and the `.pbix` file (row-level data) is kept local (D10 and D16). The data change retroactively: the download dates are recorded in `docs/sources/`.
 
 ---
 
 ## References
+
+- PROFECO, [*Quejas en materia de telecomunicaciones*](https://www.datos.gob.mx/dataset/quejas_materia_telecomunicaciones), datos.gob.mx, CC BY 4.0.
+- CRT, [Banco de Información de Telecomunicaciones (BIT)](https://bit.crt.gob.mx/BitWebApp/), table `TD_ACC_BAF_ITE_VA`.
+- IFT, *Manual de definiciones de los indicadores estadísticos de telecomunicaciones* (2018), data dictionary of the BIT.
+- Project documentation: [decisions](docs/decisions.md), [run log](docs/run_log.md), [glossary](docs/glossary_of_terms.md), [data dictionary](data/data_dictionary.md), [sources and licenses](docs/sources/licenses.md).
+
+Architecture references:
 
 - Microsoft Learn: [Understand medallion lakehouse architecture for Microsoft Fabric with OneLake](https://learn.microsoft.com/en-us/fabric/onelake/onelake-medallion-lakehouse-architecture).
 - Microsoft Learn (training module): [Organize a Fabric lakehouse using medallion architecture design](https://learn.microsoft.com/en-us/training/modules/describe-medallion-architecture/).
