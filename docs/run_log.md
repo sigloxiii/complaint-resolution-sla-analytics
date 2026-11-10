@@ -13,7 +13,7 @@ Record of each script execution on the local instance (SQL Server 2025 Express, 
 | 6 | `sql/mx_bit/step_6.sql` | 2026-11-01 | Done (`clean.bit_access`, 592,281 rows; checks 6.1 to 6.6b); D12 and D13 accepted |
 | 7 | `sql/common/step_7.sql` | 2026-11-05 | Done (mart: 6 dimensions, 2 facts; checks 7.3a to 7.3f); D14 accepted |
 | 8 | `sql/common/step_8.sql` | 2026-11-06 | Done (checks 8.1 to 8.9; view `mart.v_duration_cases`); D15 accepted |
-| 9 | `powerbi/build_guide.md` | 2026-11-06 to 2026-11-08 | Done (model, 28 measures validated against SQL, 6 report pages, PDF); D16 accepted |
+| 9 | `powerbi/build_guide.md` | 2026-11-06 to 2026-11-08 | Done (model, 26 measures validated against SQL, 6 report pages, PDF); D16 accepted |
 
 ## Step 0: database and schemas
 

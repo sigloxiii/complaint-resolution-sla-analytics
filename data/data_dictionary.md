@@ -112,4 +112,4 @@ Two fact tables share three dimensions (`dim_date`, `dim_state`, `dim_operator`)
 | `Operator Color` (calculated column) | `dim_operator` | Hex color of each operator (same on every page) |
 | `Month Start` (calculated column) | `dim_date` | First day of the month, the axis of the monthly charts |
 | `SLA Target` (parameter table) | none | Disconnected table with 30, 60, 90, 120 and 180 days; read with `SELECTEDVALUE` (D16) |
-| Measures (28 in six display folders) | `Measures` | Volume, Duration, Outcomes, Service Level, Accesses and rate, Data quality; listed in `powerbi/build_guide.md` |
+| Measures (26 in six display folders) | `Measures` | Volume, Duration, Outcomes, Service Level, Accesses and rate, Data quality; listed in `powerbi/build_guide.md` |
