@@ -214,3 +214,136 @@ Technical terms used in this project, in the order in which they became relevant
 - **`CROSS APPLY (VALUES ...)`:** repeats each row once for every value listed. In `step_8.sql` it adds the rows "All four operators" and "All years" to a result without a second query.
 - **View:** a saved query that is read like a table and stores no data. `mart.v_duration_cases` keeps the population of the duration measures in one place, so every check uses the same rules.
 - **Style rule of the project:** CTE for more than one level of logic, derived table only when required, temporary table only for an expensive result that is read more than once (`sql/README.md`).
+
+
+## Power BI and DAX
+
+### Measure and calculated column
+
+- **What it is:** a measure is a formula evaluated at query time, in the context of the filters of each visual (for example `Median Days to Close`). A calculated column is evaluated once per row at refresh and stored in the table (for example `Is Duration Case`).
+- **Where it is used:** the business logic is in measures; the calculated column is used only for the population of the duration (decision D16). Measures are grouped in display folders (Volume, Duration, Outcomes, Service Level, Accesses and rate, Data quality).
+
+### Filter context and CALCULATE
+
+- **What it is:** the set of filters that apply to a cell of a visual (the row, the column, the slicers). `CALCULATE` evaluates an expression after changing that context.
+- **Where it is used:** `Duration Cases = CALCULATE(COUNTROWS(...), fact_complaint[Is Duration Case] = 1)`. `KEEPFILTERS` adds a filter without replacing the existing one, so the legend of a chart still splits the bars (`Valid Outcome Cases`).
+
+### HASONEVALUE, ISINSCOPE and ISFILTERED
+
+- **What it is:** functions that tell a measure how it is being read: with one value selected, at which level of a hierarchy, or with a filter applied.
+- **Where it is used:** `Complaints per 100k Accesses` returns blank by month, by state or with several years selected, because the denominator is a national December stock (D8, D12 and D16).
+
+### Parameter table (disconnected table)
+
+- **What it is:** a table with no relationship to the model, used only to let the reader choose a value. A measure reads the choice with `SELECTEDVALUE`.
+- **Where it is used:** `SLA Target` (30, 60, 90, 120 and 180 days, default 60) drives `% Within SLA` and the dynamic title of page 2.
+
+### Active and inactive relationship, USERELATIONSHIP
+
+- **What it is:** only one relationship between two tables can be active. An inactive one is used by a measure that asks for it with `USERELATIONSHIP`.
+- **Where it is used:** `fact_complaint` has two dates: the filing date (active, the axis of the report, D15) and the close date (inactive).
+
+### Star schema in Power BI: single direction
+
+- **What it is:** each filter flows from the dimension (one side) to the fact (many side). Two fact tables share dimensions but are not related to each other.
+- **Where it is used:** 10 many-to-one single-direction relationships; complaints and accesses are compared only through the shared dimensions and in measures (D14 and D16).
+
+### Import mode
+
+- **What it is:** Power BI copies the data into the file. The report works offline and is fast, but the `.pbix` contains the imported rows.
+- **Where it is used:** because the file holds row-level complaints and monthly BIT accesses, it is not versioned and only the PDF and the screenshots are published (D16).
+
+## Institutions and sources: consumer protection (government)
+
+### PROFECO (Procuraduría Federal del Consumidor)
+
+- **What it is:** the federal consumer protection agency of México. It receives the complaints of consumers against providers and tries to settle them (conciliation).
+- **Where it is used:** the publisher of the complaints file (*Quejas en materia de telecomunicaciones*, CC BY 4.0). Every complaint, outcome and duration of the project comes from it (`docs/sources/MX_profeco.md`, decisions D1 to D9).
+
+### PROFECO office (ODECO) and central office (office H)
+
+- **What it is:** each complaint is handled by a PROFECO office (zone). The file names it in the column `odeco` and the office code is the second part of the case ID (for example `PFC.YUC.B.3/...` gives `YUC`).
+- **Where it is used:** the "state" of a complaint is the state of the office, not of the consumer (D8). Office `H` is the central office that handles telecom cases (written "Dir. Gral. Cons. Telecom" or "Dgpct" in the file): it holds 54.9% of all complaints and 49.6% of the fixed broadband cases. `flag_central_office` marks it.
+
+### Conciliation, Queja and the other legal procedures
+
+- **What it is:** the procedure group of a case. In a *conciliation* PROFECO mediates between the consumer and the provider; a *Queja* is a complaint that follows a different route; the *other legal procedures* are few (for example infraction proceedings).
+- **Where it is used:** the duration and the outcome measures use only the Conciliation group (`procedure_group`, D15); the other groups stay in the tables.
+
+## Institutions and sources: telecommunications regulation and statistics (government)
+
+### CRT (Comisión Reguladora de Telecomunicaciones)
+
+- **What it is:** the federal telecommunications regulator of México. It replaced the IFT and now publishes the BIT.
+- **Where it is used:** the publisher of the BIT file that gives the denominators (accesses). The CRT is not the author of this analysis and does not endorse it (`docs/sources/licenses.md`).
+
+### IFT (Instituto Federal de Telecomunicaciones)
+
+- **What it is:** the former telecommunications regulator, replaced by the CRT.
+- **Where it is used:** it wrote the *Manual de Definiciones de Indicadores Estadísticos* (2018), the data dictionary of the BIT, and appears in the older reports and guidelines listed in the README references. The delay of the BIT after the change from IFT to CRT is a possible reason for the series ending in December 2024 (`docs/sources/MX_profeco.md`).
+
+### BIT (Banco de Información de Telecomunicaciones)
+
+- **What it is:** the open statistics portal of the CRT, with indicators of the telecom sector by operator, state and month.
+- **Where it is used:** the table `TD_ACC_BAF_ITE_VA` (fixed broadband accesses by operator group and state, January 2013 to December 2024) feeds `stg.bit_acc_baf`, `clean.bit_access` and `mart.fact_accesses`. It has no explicit license, so only aggregates are published (D10).
+
+### INEGI (Instituto Nacional de Estadística y Geografía)
+
+- **What it is:** the national statistics and geography institute of México.
+- **Where it is used:** its state codes (01 to 32; 99 here means "no information") are the key of `clean.state_map` and `mart.dim_state`, the same in the complaints and in the BIT.
+
+### "Soy Usuario" reports and IFT quality guidelines
+
+- **What it is:** quarterly reports for telecom users and the quality guidelines for fixed services, both of the IFT and the CRT.
+- **Where it is used:** listed in the README as references for cross-validation and for context of benchmarks; they are not loaded in the database.
+
+## Institutions and sources: open data and licenses
+
+### datos.gob.mx
+
+- **What it is:** the open data portal of the Government of México.
+- **Where it is used:** it hosts the PROFECO dataset and its resources (the file of June 2026 and the earlier cuts), with the license field of each resource.
+
+### CC BY 4.0 (Creative Commons Attribution 4.0)
+
+- **What it is:** a license that allows the use and the modification of the data if the author is named, the changes are indicated and no endorsement is suggested.
+- **Where it is used:** the license of the PROFECO dataset. It sets the citation of the README and of the footer of every page of the report (`docs/sources/licenses.md`).
+
+### MIT License
+
+- **What it is:** a permissive license for software: it allows the use, the copy and the modification of the code if the notice is kept.
+- **Where it is used:** the license of the code and the documentation of this repository. The data keep the license of their publisher.
+
+## Operators and groups (private sector)
+
+### América Móvil, Telmex and Telcel
+
+- **What it is:** América Móvil is the telecom group that owns Telmex (fixed network) and Telcel (mobile).
+- **Where it is used:** Telmex is one of the four operators of the analysis; its BIT group is AMÉRICA MÓVIL. Telcel appears in the complaints as a mobile brand and stays out of the scope of the fixed broadband analysis (`network_type`, D11).
+
+### Izzi and Grupo Televisa
+
+- **What it is:** Izzi is the cable and internet brand of Grupo Televisa.
+- **Where it is used:** the denominator of Izzi is the BIT group GRUPO TELEVISA without the company SKY, because Sky is satellite TV (decided in step 4).
+
+### Megacable and Total Play
+
+- **What they are:** two large providers of fixed internet, TV and telephony.
+- **Where they are used:** with Telmex and Izzi they are the four operators of the analysis (D11): 99.3% of the 13,358 fixed broadband complaints. The rest of the fixed brands are grouped as "Other".
+
+### Sky and Dish
+
+- **What they are:** pay TV providers by satellite.
+- **Where they are used:** classified as `Pay TV (satellite)` in `clean.brand_map`, outside the fixed broadband scope.
+
+## Other projects and data sources considered
+
+### FCC MBA (Measuring Broadband America)
+
+- **What it is:** the broadband performance program of the US Federal Communications Commission.
+- **Where it is used:** the data of the first capstone (FTTH quality of experience). It was discarded as a source for this project (D1).
+
+### NYC 311
+
+- **What it is:** the New York City service request line and its open dataset of requests with opening and closing dates.
+- **Where it is used:** the US fallback of decision D1; it was not chosen because the México telecom dataset fits the author's domain.

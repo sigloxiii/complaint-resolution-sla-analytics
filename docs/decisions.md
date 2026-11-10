@@ -19,7 +19,7 @@ Each entry records the context, the options considered, the decision and the rea
 | D13 | No technology filter in the BIT denominators | Accepted |
 | D14 | Star schema of the mart: two facts, shared operator, state and date | Accepted |
 | D15 | Population, time axis, conciliation rate and service-level grid of the measures | Accepted |
-| D16 | Power BI model choices and what is published | Proposed |
+| D16 | Power BI model choices and what is published | Accepted |
 
 ---
 
@@ -327,8 +327,8 @@ Each entry records the context, the options considered, the decision and the rea
 
 ## D16. Power BI model choices and what is published
 
-- **Status:** Proposed (accept after the validation matrices of `powerbi/build_guide.md` match the SQL values)
-- **Date:** 2026-11-06
+- **Status:** Accepted, on 2026-11-08. Every measure matched the SQL values (checks 8.4 to 8.9, P1 to P4); evidence in `docs/run_log.md`, step 9.
+- **Date:** 2026-11-06 (opened); 2026-11-08 (accepted)
 - **Context:** the report must give the same numbers as the SQL checks of step 8, respect the limits of D8, D10, D14 and D15, and be published in a public repository.
 - **Decisions:**
   1. **Population of the duration as a calculated column** (`Is Duration Case`) in `fact_complaint`. Options: (a) repeat the five filters in every measure; (b) import the view `mart.v_duration_cases` as a third table; (c) one calculated column. Chosen: (c). It is evaluated once at refresh, the measures stay short, and it avoids a second copy of the cases with its own relationships.

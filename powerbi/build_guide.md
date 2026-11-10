@@ -152,9 +152,11 @@ CALCULATE (
 )
 
 Valid Outcome Cases =
+-- KEEPFILTERS keeps the outcome of the current row/legend: without it, a visual with
+-- dim_outcome[outcome] in the legend would repeat the total of the four outcomes in every segment
 CALCULATE (
     [Outcome Cases],
-    dim_outcome[outcome] IN { "Conciliada", "No Conciliada", "Desistimiento", "Improcedente" }
+    KEEPFILTERS ( dim_outcome[outcome] IN { "Conciliada", "No Conciliada", "Desistimiento", "Improcedente" } )
 )
 
 Conciliated Cases = CALCULATE ( [Outcome Cases], dim_outcome[outcome] = "Conciliada" )
@@ -285,8 +287,10 @@ Sources: PROFECO, "Quejas en materia de telecomunicaciones", datos.gob.mx, CC BY
 | 2 | Resolution time | Clustered column: `Median Days to Close` and `P90 Days to Close` by operator; line: median by filing year per operator; `% Within SLA` by operator with the `SLA Target` slicer; `Cohort Status` | BQ1, BQ4 |
 | 3 | Outcomes | Stacked 100% bar: `Outcome Cases` by `dim_outcome[outcome]` per operator; lines: `Conciliation Rate` and `Withdrawal Share` by year per operator | BQ2 |
 | 4 | Complaints and accesses | Column: `Complaints per 100k Accesses` by operator and year (2022 to 2024); table: `Complaints`, `Accesses December`, rate; note on the definition (D14) | BQ3 |
-| 5 | Reasons and offices | Bar (top 10): `Complaints` by `dim_reason[claim_type]`; bar: `Complaints` by `dim_state[state_name]` titled "PROFECO office state"; card `Central Office Share`; text with the D8 warning | BQ1 |
+| 5 | Reasons and offices | Bar (top 10, Top N filter by `Complaints`, data labels and axis with Display units = None): `Complaints` by `dim_reason[claim_type]`; bar (Top N 10, Ciudad de México included on purpose): `Complaints` by `dim_state[state_name]` titled "Top 10 states (PROFECO office state)"; card `Central Office Share`; text with the D8 warning | BQ1 |
 | 6 | Data quality and limits | Cards `DQ ...`; text box with the limitations (D4, D7, D8, D9, D12, D13, D15) | all |
+
+Reference values of page 5 (SQL checks P3 and P4): states Ciudad de México 7,748; Estado de México 610; Yucatán 379; San Luis Potosí 345; Guanajuato 332; Morelos 290; Querétaro 290; Jalisco 251; Coahuila 250; Tamaulipas 238. Claim types Cobro Indebido 4,343; Entrega del Producto o Servicio 4,335; Contratos 3,682; Cambios, Devoluciones o Bonificaciones 493; Trato o Servicio al Cliente 159; Publicidad, Ofertas y Promociones 138; Garantías 61; Portabilidad 45; Información Incorrecta al Consumidor Sobre… 28; Pérdidas o Deterioro 20.
 
 Reference values of the data-quality cards (`Central Office Share` = **49.6%** for fixed broadband brands, 6,624 of 13,358; 54.9% for all 36,034 complaints, SQL check P1; combined rate per 100,000 accesses of the four operators: 16.60 in 2022, 11.51 in 2023 and 9.33 in 2024, SQL check P2): missing close date **66**, close before filing **3**, cancelled **48**, batch closing day **147**, BIT rows without value **1,831**, BIT exact copies **325**.
 
@@ -300,7 +304,7 @@ Reference values of the data-quality cards (`Central Office Share` = **49.6%** f
 
 ## B4. Export and save
 
-1. *File → Export → Export to PDF* → `powerbi/complaint_sla_report.pdf`, without the `Validation` page.
+1. *File → Export → Export to PDF* → `powerbi/complaint_sla_report.pdf`, without the `Validation` pages (hide them first: right-click the tab, *Hide page*).
 2. One screenshot of each page, cropped to the report → `docs/img/powerbi_page_01.png` to `powerbi_page_06.png`.
 3. The `.pbix` stays local and is not versioned (decision D16).
 
@@ -318,5 +322,8 @@ Reference values of the data-quality cards (`Central Office Share` = **49.6%** f
 | B1 lot 2 | Matrix by filing year (outcomes) | `powerbi_check_03b.png` |
 | B1 lot 2 | Matrix by SLA target (30 to 180 days) | `powerbi_check_03c.png` |
 | B1 lot 3 | Rates, accesses and data-quality cards | `powerbi_check_04.png` |
+| B3 | SQL check P3 and P4 (top 10 states and claim types) | `step_7_check_10.png` |
 | B3 | Six pages of the report | `powerbi_page_01.png` to `powerbi_page_06.png` |
+| B4 | Tab bar with only the six report pages | `powerbi_pages_final.png` |
+| B4 | PDF opened, six pages | `powerbi_pdf_check.png` |
 | B4 | PDF | `powerbi/complaint_sla_report.pdf` |

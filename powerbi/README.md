@@ -2,20 +2,20 @@
 
 This folder holds the build guide and the PDF export of the report. The report file (`.pbix`) stays local.
 
-**Status:** in progress. The `mart` layer (`sql/common/step_7.sql`, D14) and the validation queries of the measures (`sql/common/step_8.sql`, D15) are done. The step-by-step guide, the DAX measures and the SQL reference values are in [`build_guide.md`](build_guide.md).
+**Status:** done. The report has six pages and is exported to [`complaint_sla_report.pdf`](complaint_sla_report.pdf). The `mart` layer (`sql/common/step_7.sql`, D14) and the validation queries of the measures (`sql/common/step_8.sql`, D15) are done. The step-by-step guide, the DAX measures and the SQL reference values are in [`build_guide.md`](build_guide.md).
 
 ## Plan
 
 - Connection: Import mode to the `mart` tables of the database `complaint_sla` (instance `.\SQLEXPRESS`).
 - Model: star schema, with the relationships defined in Power BI.
 - Business measures in DAX (for example median and P90 days to close, and complaints per 100,000 accesses).
-- Planned pages:
-  1. Overview (KPIs)
-  2. Resolution time by provider
-  3. Map by state
-  4. Complaint reasons
-  5. Trend over time
-  6. Data quality and limitations
+- Pages of the report:
+  1. Overview (KPIs and complaints by month)
+  2. Resolution time (median, P90 and `% Within SLA` with a target parameter)
+  3. Outcomes (conciliation rate and withdrawal share)
+  4. Complaints and accesses (rate per 100,000 accesses, 2022 to 2024)
+  5. Reasons and offices (top 10 claim types and PROFECO offices)
+  6. Data quality and limits
 
 ## Notes
 

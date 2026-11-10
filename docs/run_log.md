@@ -13,6 +13,7 @@ Record of each script execution on the local instance (SQL Server 2025 Express, 
 | 6 | `sql/mx_bit/step_6.sql` | 2026-11-01 | Done (`clean.bit_access`, 592,281 rows; checks 6.1 to 6.6b); D12 and D13 accepted |
 | 7 | `sql/common/step_7.sql` | 2026-11-05 | Done (mart: 6 dimensions, 2 facts; checks 7.3a to 7.3f); D14 accepted |
 | 8 | `sql/common/step_8.sql` | 2026-11-06 | Done (checks 8.1 to 8.9; view `mart.v_duration_cases`); D15 accepted |
+| 9 | `powerbi/build_guide.md` | 2026-11-06 to 2026-11-08 | Done (model, 28 measures validated against SQL, 6 report pages, PDF); D16 accepted |
 
 ## Step 0: database and schemas
 
@@ -191,3 +192,47 @@ What the filing-year cohorts show (2022 to 2024 are complete; 2025 has an incomp
 - **Telmex is the slowest in every cohort**, but its P90 falls from 305 to 198 days between 2022 and 2024.
 - The 2026 conciliation rate (65.3%) and its P90 (75 days) are not comparable: the cohort has only the cases already closed.
 - The cases of 8.8 are fewer than the complaints of check 7.3e for the same year (for example Telmex 2022: 846 against 863) because the population has only the Conciliation group with a valid duration.
+
+
+## Step 9: Power BI model, measures and report (`powerbi/build_guide.md`, 2026-11-06 to 2026-11-08)
+
+Import mode to the `mart` tables of `complaint_sla`. Every measure was checked against the SQL values of step 8 before it was used in a page (decision D16). The `.pbix` stays local; the PDF and the screenshots are published.
+
+| Block | Check | Result | Evidence |
+|---|---|---|---|
+| A1 | Load | Eight `mart` tables loaded (6 dimensions, 2 facts) | ![load](img/powerbi_load_tables.png) |
+| A2 | Model | Star schema, 10 many-to-one single-direction relationships; `fact_complaint[filing_date_key]` to `dim_date` active, `close_date_key` inactive; no relationship between the two facts | ![model](img/powerbi_model.png) ![relationships](img/powerbi_relationships.png) |
+| A3 | DAX check | Row counts as in the mart: 36,034 complaints, 19,840 access rows, 12,833 duration cases | ![check 01](img/powerbi_check_01.png) |
+| B1 lot 1 | Duration by operator and filing year | Median and P90 equal check 8.8 | ![check 02](img/powerbi_check_02.png) |
+| B1 lot 2 | Outcomes, conciliation rate and `% Within SLA` | Equal checks 8.6, 8.7 and 8.9 | ![03a](img/powerbi_check_03a.png) ![03b](img/powerbi_check_03b.png) ![03c](img/powerbi_check_03c.png) |
+| B1 lot 3 | Accesses, rate per 100,000 and data-quality cards | Accesses of December 2024 29,003,240 (27,458,704 + 1,544,536); combined rate 16.60, 11.51 and 9.33 per 100,000 (2022 to 2024); `Central Office Share` 49.6% (fixed broadband) and 54.9% (all complaints), as SQL checks P1 and P2 | ![check 04](img/powerbi_check_04.png) ![P1/P2](img/step_7_check_09.png) |
+| B3 page 5 | Top 10 claim types and states | Same values as SQL checks P3 and P4: Ciudad de México 7,748, Estado de México 610, Yucatán 379; Cobro Indebido 4,343, Entrega del Producto o Servicio 4,335, Contratos 3,682 | ![P3/P4](img/step_7_check_10.png) |
+
+Report pages (screenshots in `docs/img/`, PDF in `powerbi/complaint_sla_report.pdf`, the two `Validation` pages are hidden and not exported):
+
+| Page | Screenshot |
+|---|---|
+| 1 Overview | ![page 1](img/powerbi_page_01.png) |
+| 2 Resolution time | ![page 2](img/powerbi_page_02.png) |
+| 3 Outcomes | ![page 3](img/powerbi_page_03.png) |
+| 4 Complaints and accesses | ![page 4](img/powerbi_page_04.png) |
+| 5 Reasons and offices | ![page 5](img/powerbi_page_05.png) |
+| 6 Data quality and limits | ![page 6](img/powerbi_page_06.png) |
+
+Incidents and fixes while building the model:
+
+- **Connection:** "Invalid credentials" was a typo in the database name (`compliant_sla`); the encryption error was solved by clearing "Use encrypted connection" (local instance without a certificate).
+- **Relationships:** Power BI created them by itself and left the filing and close dates with the active status inverted. Fixed by deactivating the close date first and then activating the filing date. Autodetect was turned off afterwards.
+- **`Is Duration Case` showed an error:** the tables kept the prefix `mart ` in their names; they were renamed.
+- **Numeric columns summed:** `year_num` aggregated as a sum broke the measures with `HASONEVALUE`; the numeric columns are set to "Don't summarize".
+- **100% bar with an extra segment (Cancelada):** the `IN` filter of `Valid Outcome Cases` overrode the legend; fixed with `KEEPFILTERS`.
+- **Blank calendar years in `Cohort Status`:** fixed with a blank guard on `[Complaints]`.
+- **Page 5:** Ciudad de México was missing from the state chart because of an unexpected filter; it is kept in the chart on purpose, as the D8 warning explains.
+- **`.pbix` pushed by mistake:** removed from the history (soft reset, `--force-with-lease` and `gc`); `*.pbix` and `.pbi/` are in `.gitignore`.
+
+What the report shows (fixed broadband brands, 13,358 complaints):
+
+- **Three claim types hold 92.5% of the complaints** (Cobro Indebido, Entrega del Producto o Servicio and Contratos: 12,360); the top 10 types hold 99.6%.
+- **Ciudad de México concentrates 58.0% of the complaints by state** (7,748), far above Estado de México (610). The central office alone handles 49.6% of the cases, so the state chart reads as the PROFECO office and not as the place of the consumer (D8).
+- **The complaints rate per 100,000 accesses falls from 16.60 (2022) to 9.33 (2024)** at national level; there are no accesses after December 2024 and no rate by state or by month.
+- **Data quality is marginal** (66 without close date, 3 closing before filing, 48 cancelled, 147 on a batch closing day, 1,831 BIT rows without value, 325 exact copies) and does not change the findings; each rule is documented in D4, D7, D13 and D14.
