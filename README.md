@@ -6,6 +6,8 @@
 
 ![License](https://img.shields.io/badge/License-MIT-yellow) ![Data](https://img.shields.io/badge/Data-PROFECO_%2B_BIT_M%C3%A9xico-blue) ![Status](https://img.shields.io/badge/Status-Complete-brightgreen)
 
+**Español:** [README.es.md](README.es.md) | **Executive summary:** [`docs/executive_summary.md`](docs/executive_summary.md) ([Resumen ejecutivo](docs/resumen_ejecutivo.md))
+
 ---
 
 ## Author
@@ -197,6 +199,7 @@ sql/
   mx_bit/          # BIT accesses: load and clean (stg → clean)
 powerbi/           # build guide and the PDF export of the report (the .pbix stays local, D16)
 docs/
+  executive_summary.md / resumen_ejecutivo.md  # one-page summaries (English, Spanish)
   decisions.md     # decision log (D1 to D16)
   run_log.md       # script runs and their evidence
   glossary_of_terms.md
