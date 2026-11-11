@@ -10,8 +10,9 @@
 -- Evidence    : the captures taken while the report was built keep their original
 --               names: P1 and P2 = step_7_check_09.png, P3 and P4 = step_7_check_10.png,
 --               P5 = step_7_check_11.png, P6 = step_7_check_12.png (see docs/run_log.md, step 9).
---               The queries were written to this file after those captures, so run
---               them once and compare with the expected values below.
+--               The queries were written to this file after those captures and run again
+--               on 2026-11-11: P1, P2 and P7 gave the expected values (step_8b_check_01.png
+--               and step_8b_check_02.png).
 -- =====================================================================
 
 USE complaint_sla;
@@ -38,8 +39,10 @@ JOIN   mart.dim_brand      AS b ON b.brand_key = f.brand_key;
 -- ---------------------------------------------------------------------
 -- P2 Complaints per 100,000 accesses, four operators combined, 2022 to 2024
 -- ---------------------------------------------------------------------
--- Expected: 16.60 (2022), 11.51 (2023) and 9.33 (2024); accesses of December 2024:
--- 29,003,240. Power BI: measure Complaints per 100k Accesses (one year selected).
+-- Expected: 16.60 (2022), 11.51 (2023) and 9.33 (2024), from 4,080, 2,945 and 2,563
+-- complaints and 24,579,160, 25,579,459 and 27,458,704 accesses of December (four
+-- operators; with the brands grouped as Other the accesses of December 2024 are
+-- 29,003,240). Power BI: measure Complaints per 100k Accesses (one year selected).
 -- Technique: two CTEs, each aggregated at its own grain before the join (the same
 -- pattern as 7.3f), so the sums are not repeated.
 WITH c AS (
@@ -157,6 +160,7 @@ FROM (
     UNION ALL SELECT 'mart.dim_brand',           COUNT(*), 190    FROM mart.dim_brand
     UNION ALL SELECT 'mart.dim_reason',          COUNT(*), 176    FROM mart.dim_reason
     UNION ALL SELECT 'mart.dim_outcome',         COUNT(*), 39     FROM mart.dim_outcome
-    UNION ALL SELECT 'mart.v_duration_cases',    COUNT(*), 12833  FROM mart.v_duration_cases
+    UNION ALL SELECT 'mart.v_duration_cases (all fixed brands)',  COUNT(*), 12917 FROM mart.v_duration_cases
+    UNION ALL SELECT 'mart.v_duration_cases (4 main operators)',  COUNT(*), 12833 FROM mart.v_duration_cases WHERE is_main_operator = 1
 ) AS t
 ORDER BY t.object_name;

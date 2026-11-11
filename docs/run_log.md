@@ -13,7 +13,7 @@ Record of each script execution on the local instance (SQL Server 2025 Express, 
 | 6 | `sql/mx_bit/step_6.sql` | 2026-11-01 | Done (`clean.bit_access`, 592,281 rows; checks 6.1 to 6.6b); D12 and D13 accepted |
 | 7 | `sql/common/step_7.sql` | 2026-11-05 | Done (mart: 6 dimensions, 2 facts; checks 7.3a to 7.3f); D14 accepted |
 | 8 | `sql/common/step_8.sql` | 2026-11-06 | Done (checks 8.1 to 8.9; view `mart.v_duration_cases`); D15 accepted |
-| 8b | `sql/common/step_8b.sql` | 2026-11-09 | Saved: queries P1 to P6 of the report cross-checks (step 9) and row counts P7. Run once to confirm the expected values |
+| 8b | `sql/common/step_8b.sql` | 2026-11-11 | Done (queries P1 to P6 of the report cross-checks, step 9, and row counts P7). P1, P2 and P7 re-run: same values; all 14 rows of P7 show OK | ![P1 and P2](img/step_8b_check_01.png) ![P7](img/step_8b_check_02.png)
 | 9 | `powerbi/build_guide.md` | 2026-11-06 to 2026-11-08 | Done (model, 26 measures validated against SQL, 6 report pages, PDF); D16 accepted |
 
 ## Step 0: database and schemas
