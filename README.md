@@ -98,7 +98,7 @@ The pipeline stages above describe how the data flow. The project phases below d
 
 ---
 
-## Initial dataset exploration: México
+## Dataset exploration: México
 
 Desk research on the candidate sources is complete, and the five PROFECO files were downloaded and inspected in Power Query. The base file (36,034 rows) was loaded into SQL Server and profiled with `step_2.sql`: the four criteria of the feasibility gate are met (decision D1, accepted on 2026-10-27). BIT gives fixed broadband accesses by operator group and state up to December 2024, so rates per 100,000 accesses are limited to 2022 to 2024. The BIT table was cleaned into `clean.bit_access` (592,281 rows, one operator label per row), and the December accesses of Telmex, Izzi, Megacable and Total Play are the denominators. The evidence and the details of each file are in [`docs/sources/MX_profeco.md`](docs/sources/MX_profeco.md).
 
@@ -111,7 +111,7 @@ Desk research on the candidate sources is complete, and the five PROFECO files w
 | IFT *Manual de definiciones de los indicadores estadísticos de telecomunicaciones* (2018) | PDF | Definitions of the BIT indicators and table keys ([link](https://www.ift.org.mx/sites/default/files/contenidogeneral/estadisticas/manualdefinicionesmarzo2018.pdf)) |
 | "Soy Usuario" quarterly reports (IFT/CRT) | Aggregated, PDF | Cross-validation of results |
 | Fixed-service quality guidelines (IFT, 2020) | Regulatory thresholds | Context for benchmarks |
-| Ookla Open Data / M-Lab (optional) | Tiles / test records | Optional technical layer |
+| Ookla Open Data / M-Lab (optional) | Tiles / test records | Not used: the technical layer is out of scope |
 
 ### PROFECO columns (23, as found in the file header)
 
@@ -132,7 +132,7 @@ The names differ from the published data dictionary (which uses upper case, for 
 
 - **Provider names vary** between records (for example, with and without the corporate suffix), so a normalization mapping table is required.
 - **Date format:** the data dictionary documents `dd-mm-yyyy`, but the file uses year-first text with dashes (`2022-01-03`), as confirmed in `step_2.sql` (0 values with another format). All dates are loaded as text and converted in the clean layer.
-- **Retroactive updates:** the publisher warns that historical data may change. A frozen copy and the download date will be recorded.
+- **Retroactive updates:** the publisher warns that historical data may change. The download dates and the SHA-256 of every file are recorded in `docs/sources/`.
 - **Five cuts are published** and they are not simple, growing versions of one another. The base cut is `junio_2026`, confirmed by an overlap audit (decision D4 in `docs/decisions.md`): it contains every case of the three older cuts.
 - **No complete service-type column:** `giro` is a provider classification, and `problema_especial` names a service in only 27% of the rows. The analysis is at provider level, and fixed vs mobile comes from a brand mapping (decision D7 in `docs/decisions.md`).
 - **One provider per complaint:** the base keeps one row per case ID, so a complaint against two providers (for example the operator and the phone maker) appears with one of them. About 0.3% of the fixed-operator complaints may be affected (decision D4).
@@ -234,7 +234,7 @@ The raw files and the Power BI file are not published (decisions D10 and D16), s
    - PROFECO, *Quejas en materia de telecomunicaciones*, resource closed in June 2026 (`quejas_telecomunicaciones_2022_junio_2026.csv`).
    - CRT, BIT, table `TD_ACC_BAF_ITE_VA` (`TD_ACC_BAF_ITE_VA.csv`).
 2. **Adjust the paths.** The scripts `step_1.sql`, `step_5.sql` (and `step_4.sql`, optional) read the files with an absolute path; change it to your `data/raw/` folder and give read permission on that folder to the SQL Server service account.
-3. **Run the scripts in SSMS, in order:** `step_0` to `step_8` (see the execution order in `sql/README.md`). `step_2` and `step_4` are audit steps: the clean layer does not depend on them. Every script ends with checks; the expected values are in `docs/run_log.md`.
+3. **Run the scripts in SSMS, in order:** `step_0` to `step_8` (see the execution order in `sql/README.md`), and then `step_8b`, which repeats the cross-checks of the report and checks the row counts of the whole pipeline (every row must show OK). `step_2` and `step_4` are audit steps: the clean layer does not depend on them. Every script ends with checks; the expected values are in `docs/run_log.md`.
 
 | Object | Expected rows |
 |---|---|
@@ -242,7 +242,8 @@ The raw files and the Power BI file are not published (decisions D10 and D16), s
 | `stg.bit_acc_baf`, `clean.bit_access` | 592,281 |
 | `mart.fact_accesses` | 19,840 |
 | `mart.dim_date`, `dim_state`, `dim_operator`, `dim_brand`, `dim_reason`, `dim_outcome` | 5,113; 33; 5; 190; 176; 39 |
-| `mart.v_duration_cases` | 12,833 |
+| `mart.v_duration_cases` (all fixed brands) | 12,917 |
+| `mart.v_duration_cases` with `is_main_operator = 1` (the four operators of the report) | 12,833 |
 
 4. **Build the report.** In Power BI Desktop connect to `.\SQLEXPRESS`, database `complaint_sla`, in Import mode, load the eight `mart` tables and follow `powerbi/build_guide.md` (model, 26 measures, validation pages and the six report pages). Every measure has a reference value from SQL to compare with.
 5. **Check the result** against the PDF `powerbi/complaint_sla_report.pdf` and the screenshots in `docs/img/` (`powerbi_page_01.png` to `powerbi_page_06.png`).

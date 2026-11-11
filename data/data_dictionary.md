@@ -29,7 +29,7 @@ List and description of every table and view of the database `complaint_sla` (in
 | 15 | `mart.dim_outcome` | mart | `step_7.sql` | outcome × conciliation type × procedure group | 39 |
 | 16 | `mart.fact_complaint` | mart | `step_7.sql` | complaint | 36,034 |
 | 17 | `mart.fact_accesses` | mart | `step_7.sql` | month × state × operator | 19,840 |
-| 18 | `mart.v_duration_cases` (view) | mart | `step_8.sql` | complaint of the duration population | 12,833 |
+| 18 | `mart.v_duration_cases` (view) | mart | `step_8.sql` | complaint of the duration population | 12,917 (12,833 for the four main operators) |
 
 ## Lineage
 
@@ -102,7 +102,7 @@ Two fact tables share three dimensions (`dim_date`, `dim_state`, `dim_operator`)
 
 | View | Description |
 |---|---|
-| `mart.v_duration_cases` | The population of the duration measures: fixed brands (`in_dashboard_scope = 1`), valid duration and Conciliation group, with operator, brand, filing and close year, days, outcome and batch-closing flag. Every check of `step_8.sql` reads it, so all use the same rules (D15). |
+| `mart.v_duration_cases` | The population of the duration: fixed brands (`in_dashboard_scope = 1`), valid duration and Conciliation group, with operator, brand, filing and close year, days, outcome and batch-closing flag. It keeps the brands grouped as Other (12,917 cases); the report adds `is_main_operator = 1` (12,833 cases). Every check of `step_8.sql` reads it, so all use the same rules (D15). |
 
 ## Objects that exist only in Power BI (not in SQL Server)
 

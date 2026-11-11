@@ -13,6 +13,7 @@ Record of each script execution on the local instance (SQL Server 2025 Express, 
 | 6 | `sql/mx_bit/step_6.sql` | 2026-11-01 | Done (`clean.bit_access`, 592,281 rows; checks 6.1 to 6.6b); D12 and D13 accepted |
 | 7 | `sql/common/step_7.sql` | 2026-11-05 | Done (mart: 6 dimensions, 2 facts; checks 7.3a to 7.3f); D14 accepted |
 | 8 | `sql/common/step_8.sql` | 2026-11-06 | Done (checks 8.1 to 8.9; view `mart.v_duration_cases`); D15 accepted |
+| 8b | `sql/common/step_8b.sql` | 2026-11-09 | Saved: queries P1 to P6 of the report cross-checks (step 9) and row counts P7. Run once to confirm the expected values |
 | 9 | `powerbi/build_guide.md` | 2026-11-06 to 2026-11-08 | Done (model, 26 measures validated against SQL, 6 report pages, PDF); D16 accepted |
 
 ## Step 0: database and schemas
@@ -114,6 +115,18 @@ Results (images `step_3_check_14.png` to `step_3_check_17.png` and the new `step
 
 The revision 2 is finished.
 
+## Step 4: overlap audit of the five PROFECO cuts (`sql/mx_profeco/step_4.sql`, 2026-10-31)
+
+Compares the four older cuts with the base file `junio_2026` by case ID (decision D4). Evidence: `step_4_check_01.png` to `step_4_check_06.png` and the follow-up checks 4.7 to 4.11. The detail of each check, with its capture, is in `docs/sources/MX_profeco.md` (section "Overlap audit of the five cuts").
+
+| Result | Value |
+|---|---|
+| Base file | 36,034 rows and 36,034 distinct IDs |
+| Older cuts (`2022_2025`, `ene_2026`, `may_2026`) | Every case is in the base; `2022_2025` and `may_2026` have repeated IDs |
+| `jul2026` | 29,966 cases in the base, 1,960 only in the cut (closed in June and July 2026) and 6,068 base cases missing: a newer publication, not a corrected version |
+| Dates | Differ only in format (`2025/02/18` against `2025-02-18`) |
+| Decision | `junio_2026` is the base file (D4); the audit tables stay in `stg` and are read-only for the pipeline |
+
 ## Step 5: BIT load (`sql/mx_bit/step_5.sql`, 2026-11-01)
 
 Loads `TD_ACC_BAF_ITE_VA.csv` (downloaded 2026-10-26) into `stg.bit_acc_baf` as text. Evidence: `step_5_check_00.png` to `step_5_check_08p2.png`; the results are summarized in `docs/sources/MX_profeco.md`.
@@ -207,6 +220,9 @@ Import mode to the `mart` tables of `complaint_sla`. Every measure was checked a
 | B1 lot 2 | Outcomes, conciliation rate and `% Within SLA` | Equal checks 8.6, 8.7 and 8.9 | ![03a](img/powerbi_check_03a.png) ![03b](img/powerbi_check_03b.png) ![03c](img/powerbi_check_03c.png) |
 | B1 lot 3 | Accesses, rate per 100,000 and data-quality cards | Accesses of December 2024 29,003,240 (27,458,704 + 1,544,536); combined rate 16.60, 11.51 and 9.33 per 100,000 (2022 to 2024); `Central Office Share` 49.6% (fixed broadband) and 54.9% (all complaints), as SQL checks P1 and P2 | ![check 04](img/powerbi_check_04.png) ![P1/P2](img/step_7_check_09.png) |
 | B3 page 5 | Top 10 claim types and states | Same values as SQL checks P3 and P4: Ciudad de México 7,748, Estado de México 610, Yucatán 379; Cobro Indebido 4,343, Entrega del Producto o Servicio 4,335, Contratos 3,682 | ![P3/P4](img/step_7_check_10.png) |
+| B3 page 5 | Total Play spike in 2025 | Monthly complaints (P5): 2024 between 27 and 62 a month (579 in the year); 2025 April 166, May 128, June 109, July 100 (1,017 in the year). By claim type, April to July (P6): 503 cases in 2025 against 200 in 2024; Contratos 209 against 84 and Cobro Indebido 201 against 51 explain 275 of the 303 cases of increase (91%) | ![P5](img/step_7_check_11.png) ![P6](img/step_7_check_12.png) |
+
+The queries of the checks P1 to P6 (and the row counts P7) are saved in `sql/common/step_8b.sql`; the captures keep the names they had when the report was built (P1 and P2 `step_7_check_09.png`, P3 and P4 `step_7_check_10.png`, P5 `step_7_check_11.png`, P6 `step_7_check_12.png`).
 
 Report pages (screenshots in `docs/img/`, PDF in `powerbi/complaint_sla_report.pdf`, the two `Validation` pages are hidden and not exported):
 
@@ -228,7 +244,7 @@ Incidents and fixes while building the model:
 - **100% bar with an extra segment (Cancelada):** the `IN` filter of `Valid Outcome Cases` overrode the legend; fixed with `KEEPFILTERS`.
 - **Blank calendar years in `Cohort Status`:** fixed with a blank guard on `[Complaints]`.
 - **Page 5:** Ciudad de México was missing from the state chart because of an unexpected filter; it is kept in the chart on purpose, as the D8 warning explains.
-- **`.pbix` pushed by mistake:** removed from the history (soft reset, `--force-with-lease` and `gc`); `*.pbix` and `.pbi/` are in `.gitignore`.
+- **`.pbix` pushed by mistake:** removed from the history (soft reset, `--force-with-lease` and `gc`; evidence in `img/repo_pbix_check_2.png`); `*.pbix` and `.pbi/` are in `.gitignore`.
 
 What the report shows (fixed broadband brands, 13,358 complaints):
 

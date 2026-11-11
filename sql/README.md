@@ -40,6 +40,7 @@ sql/
 | 6 | `mx_bit/step_6.sql` | Clean layer of the BIT: `clean.bit_access` (types, date, state code, operator, flags) |
 | 7 | `common/step_7.sql` | Mart layer (star schema): six dimensions and two fact tables for Power BI |
 | 8 | `common/step_8.sql` | Validation queries of the measures (duration, outcomes, service-level grid); one view, `mart.v_duration_cases` |
+| 8b | `common/step_8b.sql` | Cross-checks of the Power BI report (P1 to P6: central office share, rate per 100,000, top 10 states and claim types, Total Play spike) and row counts of the whole pipeline with an OK/ERROR status |
 
 ## Requirements
 

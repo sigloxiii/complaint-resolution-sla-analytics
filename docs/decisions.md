@@ -308,7 +308,7 @@ Each entry records the context, the options considered, the decision and the rea
 - **Status:** Accepted
 - **Date:** 2026-11-06
 - **Context:** before the DAX measures are written, the checks 8.1 to 8.7 of `step_8.sql` profiled the resolution time (BQ1, BQ4), the outcomes (BQ2) and the service-level targets. The conciliation process has no official target, so the targets are parameters.
-- **Decision 1, population of the duration:** fixed brands, the four operators, procedure group "Conciliation", valid duration. It has **12,833 cases** (`mart.v_duration_cases`). Queja and the other legal procedures are left out (they are not a conciliation); out of the dashboard scope there are 21,856 more valid conciliation cases.
+- **Decision 1, population of the duration:** fixed brands, the four operators, procedure group "Conciliation", valid duration. It has **12,833 cases** (`mart.v_duration_cases` filtered with `is_main_operator = 1`; the view has 12,917 because it also keeps the brands grouped as Other). Queja and the other legal procedures are left out (they are not a conciliation); out of the dashboard scope there are 21,856 more valid conciliation cases.
 - **Decision 2, batch-closing day:** the 50 cases closed on 2026-03-10 stay in the population (0.4%). Their average duration is longer (Telmex 155 against 105 days, Izzi 88 against 60, Megacable 84 against 42, Total Play 80 against 59), but they are few and their maximum is lower than that of the other cases, so they do not distort the P90. The flag `flag_unusual_close_day` stays for a sensitivity check.
 - **Decision 3, time axis: the filing year (cohort), the same as the volume and the rates.**
   - Options: (A) filing year; (B) close year.
