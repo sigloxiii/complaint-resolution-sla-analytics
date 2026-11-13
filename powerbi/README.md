@@ -2,7 +2,7 @@
 
 This folder holds the build guide and the PDF export of the report. The report file (`.pbix`) stays local.
 
-**Status:** done. The report has six pages and is exported to [`complaint_sla_report.pdf`](complaint_sla_report.pdf). The `mart` layer (`sql/common/step_7.sql`, D14) and the validation queries of the measures (`sql/common/step_8.sql`, D15) are done. The step-by-step guide, the DAX measures and the SQL reference values are in [`build_guide.md`](build_guide.md).
+**Status:** done. The report has six pages and is exported to [`complaint_sla_report.pdf`](complaint_sla_report.pdf). The `mart` layer (`sql/common/step_7.sql`, D14) and the validation queries of the measures (`sql/common/step_8.sql`, D15) are done. The step-by-step guide, the DAX measures and the SQL reference values are in [`build_guide.md`](build_guide.md). Every DAX object (26 measures, 3 calculated columns, the parameter table) is listed with its definition and check in [`measures_catalog.md`](measures_catalog.md).
 
 ## Plan
 

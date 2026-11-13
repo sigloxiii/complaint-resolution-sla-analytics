@@ -245,7 +245,7 @@ The raw files and the Power BI file are not published (decisions D10 and D16), s
 | `mart.v_duration_cases` (all fixed brands) | 12,917 |
 | `mart.v_duration_cases` with `is_main_operator = 1` (the four operators of the report) | 12,833 |
 
-4. **Build the report.** In Power BI Desktop connect to `.\SQLEXPRESS`, database `complaint_sla`, in Import mode, load the eight `mart` tables and follow `powerbi/build_guide.md` (model, 26 measures, validation pages and the six report pages). Every measure has a reference value from SQL to compare with.
+4. **Build the report.** In Power BI Desktop connect to `.\SQLEXPRESS`, database `complaint_sla`, in Import mode, load the eight `mart` tables and follow `powerbi/build_guide.md` (model, 26 measures, catalogued in `powerbi/measures_catalog.md`, validation pages and the six report pages). Every measure has a reference value from SQL to compare with.
 5. **Check the result** against the PDF `powerbi/complaint_sla_report.pdf` and the screenshots in `docs/img/` (`powerbi_page_01.png` to `powerbi_page_06.png`).
 
 ---

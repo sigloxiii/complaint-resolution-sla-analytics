@@ -79,6 +79,27 @@ IF (
     0
 )
 ```
+7. **Calculated column** in `dim_operator` (one color per operator, the same on every page; used with *Format → Colors → fx → Format style: Field value*):
+
+```dax
+Operator Color =
+SWITCH (
+    dim_operator[operator_name],
+    "Telmex",     "#0072B2",
+    "Izzi",       "#E69F00",
+    "Megacable",  "#009E73",
+    "Total Play", "#D55E00",
+    "#999999"    -- Other
+)
+```
+
+8. **Calculated column** in `dim_date` (first day of the month, a real date: the monthly charts use it as a **continuous** x-axis, so the months are in calendar order and the gaps show):
+
+```dax
+Month Start = DATE ( dim_date[year_num], dim_date[month_num], 1 )
+```
+
+Set its format to `mmm yyyy`. All the calculated objects of the model are listed, with their meaning and checks, in [`measures_catalog.md`](measures_catalog.md).
 
 **Check the load** with the *DAX query view* (left bar of Power BI Desktop) and capture the result:
 
@@ -103,7 +124,7 @@ Capture → `powerbi_check_01.png`.
 
 ## B1. Measures
 
-Create them in `_Measures`. Names are in English because the report is in English.
+Create them in `_Measures` (26 measures). Names are in English because the report is in English. Full reference: [`measures_catalog.md`](measures_catalog.md).
 
 ```dax
 -- VOLUME ---------------------------------------------------------
@@ -181,6 +202,10 @@ VAR _target = [Selected SLA Days]
 RETURN CALCULATE ( [Duration Cases], fact_complaint[days_to_close] <= _target )
 
 % Within SLA = DIVIDE ( [Cases Within SLA], [Duration Cases] )
+
+SLA Title =
+-- Dynamic title of the SLA visual on page 2 (Title → fx → Field value). Follows the slicer
+"Cases closed within " & [Selected SLA Days] & " days, by operator"
 
 -- ACCESSES AND RATES (D14, D8) ------------------------------------
 Accesses December =
@@ -271,13 +296,14 @@ Do not relate it to any table. Use it as a slicer (single selection); the measur
 
 **Format rules**
 - Theme: light background, one font, titles that say what the chart shows ("Median days to close, by filing year").
-- Colors of the operators (Okabe-Ito, readable with color blindness, the same on every page): Telmex `#0072B2`, Izzi `#E69F00`, Megacable `#009E73`, Total Play `#D55E00`, Other `#999999`.
+- Colors of the operators (Okabe-Ito, readable with color blindness, the same on every page): Telmex `#0072B2`, Izzi `#E69F00`, Megacable `#009E73`, Total Play `#D55E00`, Other `#999999` (stored in the column `dim_operator[Operator Color]`, A3 step 7).
 - A text box in the footer of every page with the sources and the notice:
 
 ```
 Sources: PROFECO, "Quejas en materia de telecomunicaciones", datos.gob.mx, CC BY 4.0, downloaded 2026-10-24 (cleaned and aggregated by the author). CRT, Banco de Información de Telecomunicaciones (BIT), "TD_ACC_BAF_ITE_VA", downloaded 2026-10-26. Independent portfolio project; not an official product and not endorsed by PROFECO, the CRT or the Government of México.
 ```
 
+- Monthly charts use `dim_date[Month Start]` as a continuous x-axis (A3 step 8).
 - Slicers: `dim_date[year_num]` (filing year) and `dim_operator[operator_name]` on the pages that need them. Edit interactions so the year slicer does not hide the SLA parameter.
 - Every page with a duration or an outcome shows the **Cohort Status** next to the year.
 

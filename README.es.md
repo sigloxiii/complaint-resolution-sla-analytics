@@ -245,7 +245,7 @@ Los archivos crudos y el archivo de Power BI no se publican (decisiones D10 y D1
 | `mart.v_duration_cases` (todas las marcas fijas) | 12,917 |
 | `mart.v_duration_cases` con `is_main_operator = 1` (los cuatro operadores del reporte) | 12,833 |
 
-4. **Construir el reporte.** En Power BI Desktop, conectar a `.\SQLEXPRESS`, base de datos `complaint_sla`, en modo Import, cargar las ocho tablas de `mart` y seguir `powerbi/build_guide.md` (modelo, 26 medidas, páginas de validación y las seis páginas del reporte). Cada medida tiene un valor de referencia de SQL para comparar.
+4. **Construir el reporte.** En Power BI Desktop, conectar a `.\SQLEXPRESS`, base de datos `complaint_sla`, en modo Import, cargar las ocho tablas de `mart` y seguir `powerbi/build_guide.md` (modelo, 26 medidas, catalogadas en `powerbi/measures_catalog.md`, páginas de validación y las seis páginas del reporte). Cada medida tiene un valor de referencia de SQL para comparar.
 5. **Verificar el resultado** contra el PDF `powerbi/complaint_sla_report.pdf` y las capturas en `docs/img/` (`powerbi_page_01.png` a `powerbi_page_06.png`).
 
 ---
